@@ -18,11 +18,13 @@ An intelligent requirements management system powered by Generative AI and Light
 
 ### 🧠 Knowledge Base Features (NEW!)
 
+- **📁 Document Upload Support** - Upload TXT, PDF, DOCX files to build custom knowledge base
 - **Domain-Specific Analysis** - Pre-loaded knowledge for web apps, mobile apps, e-commerce, and data management systems
 - **Best Practices Recommendations** - Industry-standard suggestions for each project type
 - **Risk Identification** - Automatic detection of potential project risks and challenges
 - **Missing Elements Detection** - Identifies gaps in requirement specifications
 - **Contextual Question Generation** - Smart questions tailored to your specific project type
+- **Multi-Format Document Processing** - Intelligent text extraction from various document formats
 
 ### 🎨 Interface Highlights
 
@@ -97,15 +99,18 @@ Open browser and visit: **http://localhost:8501**
 
 #### Phase 1: Requirements Input
 1. Enter simple requirement descriptions on the welcome screen
-2. Use provided example requirements or create your own
-3. Select AI model (demo mode supported)
-4. Click "Start Analysis"
+2. **📚 Optional**: Upload relevant documents (TXT, PDF, DOCX) to enhance the knowledge base
+3. Use provided example requirements or create your own
+4. Select AI model (demo mode supported)
+5. Click "✨ Analyze" to start
 
-#### Phase 2: Requirements Enhancement  
-1. AI automatically analyzes and enhances your requirements
-2. Continue conversation to clarify and refine further
-3. Request AI to modify specific parts
-4. When satisfied, click "Start Review"
+#### Phase 2: Knowledge Base Enhanced Analysis
+1. 🧠 **Knowledge Base Status**: Check if enhanced features are enabled in the sidebar
+2. 📄 **Document Integration**: Uploaded documents automatically enhance analysis quality
+3. 💡 **Smart Questions**: Click on suggested questions to refine your requirements
+4. AI automatically analyzes and enhances your requirements using domain expertise and uploaded documents
+5. View **completeness score** and **missing elements** suggestions
+6. Continue conversation to clarify and refine further
 
 #### Phase 3: Requirements Review
 1. Review Agent automatically reviews complete requirements

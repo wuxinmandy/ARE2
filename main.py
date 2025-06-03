@@ -450,6 +450,103 @@ st.markdown("""
     .score-good { background: #17a2b8; }
     .score-fair { background: #ffc107; color: #212529; }
     .score-poor { background: #dc3545; }
+    
+    /* Document Upload Styles */
+    .upload-section {
+        background: white;
+        border: 2px dashed #dee2e6;
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 1.5rem 0;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+    
+    .upload-section:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+    }
+    
+    .upload-icon {
+        font-size: 3rem;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+    
+    .upload-text {
+        color: #6c757d;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .upload-subtext {
+        color: #adb5bd;
+        font-size: 0.85rem;
+    }
+    
+    .file-list {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .file-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .file-item:last-child {
+        border-bottom: none;
+    }
+    
+    .file-icon {
+        margin-right: 0.5rem;
+        color: #6c757d;
+    }
+    
+    .file-success {
+        color: #28a745;
+        font-weight: 500;
+    }
+    
+    .file-error {
+        color: #dc3545;
+        font-weight: 500;
+    }
+    
+    /* File uploader styling */
+    .stFileUploader > div {
+        border-radius: 12px;
+        border: 2px dashed #dee2e6;
+        padding: 1.5rem;
+        text-align: center;
+        background: white;
+        transition: all 0.2s ease;
+    }
+    
+    .stFileUploader > div:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+    }
+    
+    .stFileUploader label {
+        color: #6c757d !important;
+        font-weight: 400 !important;
+    }
+    
+    /* Upload progress */
+    .upload-progress {
+        background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        padding: 0.75rem;
+        border-radius: 6px;
+        margin: 0.5rem 0;
+        text-align: center;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -601,6 +698,29 @@ def show_model_selector():
         else:
             st.success(f"✅ {selected_model_info['description']}")
         
+        # Knowledge Base Status
+        st.markdown("---")
+        st.markdown("### 🧠 Knowledge Base")
+        
+        try:
+            from services.knowledge_base import knowledge_base_service
+            
+            if knowledge_base_service.is_initialized:
+                st.success("🟢 **LightRAG Enabled**\n\nAdvanced knowledge processing active")
+            else:
+                st.warning("🟡 **Basic Mode**\n\nInstall LightRAG for advanced features")
+        except:
+            st.error("🔴 **Not Available**\n\nKnowledge base disabled")
+        
+        # Show uploaded documents
+        if 'uploaded_documents' in st.session_state and st.session_state.uploaded_documents:
+            st.markdown("**📄 Uploaded Documents:**")
+            for i, doc in enumerate(st.session_state.uploaded_documents[-3:]):  # Show last 3
+                st.markdown(f"• `{doc['filename']}`")
+            
+            if len(st.session_state.uploaded_documents) > 3:
+                st.markdown(f"*...and {len(st.session_state.uploaded_documents) - 3} more*")
+        
         return selected_model
 
 def show_header():
@@ -653,7 +773,7 @@ def show_welcome_screen():
     st.markdown('<div class="input-section">', unsafe_allow_html=True)
     
     requirement = st.text_area(
-        "",
+        "Project Description",
         placeholder="Describe what you want to build...\n\nExample: An e-commerce platform for handmade products with inventory management and customer reviews.",
         height=120,
         key="requirement_input",
@@ -681,26 +801,34 @@ def show_welcome_screen():
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Simplified examples section
-    st.markdown("### Quick Start Examples")
-    examples = [
-        "📱 Mobile app for fitness tracking",
-        "🛒 E-commerce marketplace",
-        "📚 Online learning platform",
-        "🍽️ Restaurant management system"
-    ]
+    # Document Upload Section for Knowledge Base
+    st.markdown("### 📚 Build Knowledge Base")
+    st.markdown("Upload documents to enhance the AI's domain expertise for your project:")
     
-    st.markdown('<div class="example-grid">', unsafe_allow_html=True)
-    cols = st.columns(2)
-    for i, example in enumerate(examples):
-        with cols[i % 2]:
-            if st.button(example, key=f"example_{i}", use_container_width=True):
-                # Remove emoji from the actual requirement
-                clean_example = example.split(" ", 1)[1] if " " in example else example
-                update_session_data('original_requirement', clean_example)
-                update_session_data('current_phase', 'enhance')
-                update_session_data('title', clean_example)
-                st.rerun()
+    # Upload area
+    st.markdown('<div class="input-section">', unsafe_allow_html=True)
+    
+    uploaded_files = st.file_uploader(
+        "Upload Documents for Knowledge Base",
+        type=['txt', 'pdf', 'docx', 'doc'],
+        accept_multiple_files=True,
+        label_visibility="collapsed",
+        help="Supported formats: TXT, PDF, DOCX, DOC"
+    )
+    
+    if uploaded_files:
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            st.markdown("**📄 Files ready to upload:**")
+            for file in uploaded_files:
+                file_size = len(file.getvalue()) / 1024  # KB
+                st.markdown(f"- `{file.name}` ({file_size:.1f} KB)")
+        
+        with col2:
+            if st.button("🔄 Process Documents", type="secondary", use_container_width=True):
+                process_uploaded_documents(uploaded_files)
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
 def show_chat_message(role, content, timestamp=None):
@@ -1049,6 +1177,149 @@ def show_requirement_improvements(requirement_text: str):
     finally:
         if 'loop' in locals():
             loop.close()
+
+def process_uploaded_documents(uploaded_files):
+    """Process uploaded documents and add to knowledge base"""
+    try:
+        from services.knowledge_base import knowledge_base_service
+        
+        processed_docs = []
+        failed_docs = []
+        
+        with st.spinner("📖 Processing documents..."):
+            for file in uploaded_files:
+                try:
+                    # Extract text content based on file type
+                    text_content = extract_text_from_file(file)
+                    
+                    if text_content:
+                        if knowledge_base_service.is_initialized:
+                            # Add to LightRAG knowledge base
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+                            
+                            # Insert document content into LightRAG
+                            loop.run_until_complete(
+                                knowledge_base_service.rag.ainsert(f"""
+Document: {file.name}
+
+Content:
+{text_content}
+                                """)
+                            )
+                            loop.close()
+                        else:
+                            # Store documents in session state for future use
+                            if 'uploaded_documents' not in st.session_state:
+                                st.session_state.uploaded_documents = []
+                            
+                            st.session_state.uploaded_documents.append({
+                                'filename': file.name,
+                                'content': text_content,
+                                'timestamp': time.time()
+                            })
+                        
+                        processed_docs.append(file.name)
+                        
+                    else:
+                        failed_docs.append(file.name)
+                        
+                except Exception as e:
+                    failed_docs.append(f"{file.name} (Error: {str(e)})")
+        
+        # Show results
+        if processed_docs:
+            if knowledge_base_service.is_initialized:
+                st.success(f"✅ Successfully processed {len(processed_docs)} documents:")
+                for doc in processed_docs:
+                    st.markdown(f"- ✓ `{doc}`")
+                st.info("🧠 Knowledge base updated! The AI can now use insights from your documents.")
+            else:
+                st.success(f"✅ Successfully uploaded {len(processed_docs)} documents:")
+                for doc in processed_docs:
+                    st.markdown(f"- ✓ `{doc}`")
+                st.info("📄 Documents stored for future use. Knowledge base features will be available once LightRAG is properly installed.")
+        
+        if failed_docs:
+            st.error(f"❌ Failed to process {len(failed_docs)} documents:")
+            for doc in failed_docs:
+                st.markdown(f"- ✗ `{doc}`")
+    
+    except Exception as e:
+        st.error(f"Document processing failed: {str(e)}")
+
+def extract_text_from_file(uploaded_file):
+    """Extract text content from uploaded file"""
+    try:
+        file_extension = uploaded_file.name.split('.')[-1].lower()
+        
+        if file_extension == 'txt':
+            # Text file
+            try:
+                return uploaded_file.getvalue().decode('utf-8')
+            except UnicodeDecodeError:
+                # Try different encodings
+                for encoding in ['latin-1', 'cp1252', 'iso-8859-1']:
+                    try:
+                        uploaded_file.seek(0)
+                        return uploaded_file.getvalue().decode(encoding)
+                    except:
+                        continue
+                st.warning(f"Could not decode text file {uploaded_file.name}")
+                return None
+        
+        elif file_extension == 'pdf':
+            # PDF file
+            try:
+                import pypdf
+                from io import BytesIO
+                
+                pdf_reader = pypdf.PdfReader(BytesIO(uploaded_file.getvalue()))
+                text_content = ""
+                
+                for page in pdf_reader.pages:
+                    text_content += page.extract_text() + "\n"
+                
+                if text_content.strip():
+                    return text_content.strip()
+                else:
+                    st.warning(f"No text content found in PDF {uploaded_file.name}")
+                    return None
+            
+            except ImportError:
+                st.warning("PDF processing requires pypdf. Install with: `pip install pypdf`")
+                return None
+            except Exception as e:
+                st.warning(f"Error processing PDF {uploaded_file.name}: {str(e)}")
+                return None
+        
+        elif file_extension in ['docx', 'doc']:
+            # Word document
+            try:
+                import docx2txt
+                from io import BytesIO
+                
+                text_content = docx2txt.process(BytesIO(uploaded_file.getvalue()))
+                if text_content and text_content.strip():
+                    return text_content.strip()
+                else:
+                    st.warning(f"No text content found in Word document {uploaded_file.name}")
+                    return None
+            
+            except ImportError:
+                st.warning("Word document processing requires docx2txt. Install with: `pip install docx2txt`")
+                return None
+            except Exception as e:
+                st.warning(f"Error processing Word document {uploaded_file.name}: {str(e)}")
+                return None
+        
+        else:
+            st.warning(f"Unsupported file type: {file_extension}")
+            return None
+    
+    except Exception as e:
+        st.error(f"Error extracting text from {uploaded_file.name}: {str(e)}")
+        return None
 
 def main():
     """Main function"""
