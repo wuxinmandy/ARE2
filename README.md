@@ -1,21 +1,36 @@
 # 🤖 AI Requirements Management System
 
-An intelligent requirements management system powered by Generative AI that helps users enhance and review software requirements through AI-driven conversations.
+An intelligent requirements management system powered by Generative AI and LightRAG knowledge base that helps users enhance and review software requirements through AI-driven conversations.
 
 ## ✨ Key Features
 
 ### 🎯 Core Functionality
 
 1. **Smart Requirements Input** - Users input simple requirement text through a beautiful, ChatGPT-like web interface
-2. **AI Requirements Enhancement** - Requirement Agent enhances requirements through large model conversations with users
-3. **Intelligent Requirements Review** - Review Agent conducts requirement reviews using knowledge base and LLM
-4. **Problem Highlighting** - Issues found are **highlighted in yellow** on the web UI
-5. **Multi-Model Support** - Configurable selection of different LLM models (OpenAI, Anthropic, etc.)
+2. **🧠 AI Knowledge Base Enhancement** - Enhanced Requirement Agent powered by LightRAG knowledge base provides domain-specific insights
+3. **AI Requirements Enhancement** - Requirement Agent enhances requirements through large model conversations with users
+4. **💡 Smart Question Generation** - Contextual questions based on industry best practices and domain expertise
+5. **Intelligent Requirements Review** - Review Agent conducts requirement reviews using knowledge base and LLM
+6. **Problem Highlighting** - Issues found are **highlighted in yellow** on the web UI
+7. **📊 Completeness Assessment** - Real-time evaluation of requirement completeness (1-10 score)
+8. **💬 Multi-Session Management** - Chat history sidebar for managing multiple requirement sessions
+9. **Multi-Model Support** - Configurable selection of different LLM models (OpenAI, Anthropic, etc.)
+
+### 🧠 Knowledge Base Features (NEW!)
+
+- **Domain-Specific Analysis** - Pre-loaded knowledge for web apps, mobile apps, e-commerce, and data management systems
+- **Best Practices Recommendations** - Industry-standard suggestions for each project type
+- **Risk Identification** - Automatic detection of potential project risks and challenges
+- **Missing Elements Detection** - Identifies gaps in requirement specifications
+- **Contextual Question Generation** - Smart questions tailored to your specific project type
 
 ### 🎨 Interface Highlights
 
 - **ChatGPT-style Web UI** built with Streamlit
+- **Chat Session Management** with history sidebar navigation
 - **Conversational Design** with chat bubbles and smooth flow
+- **Knowledge Base Status Panel** showing AI enhancement capabilities
+- **Smart Questions Panel** with one-click question insertion
 - **Responsive Layout** supporting desktop and mobile devices
 - **Modern Styling** with gradients, animations, and clean aesthetics
 - **Real-time Interactive Conversations** 
