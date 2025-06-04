@@ -5,6 +5,7 @@ from agents.requirement_agent import requirement_agent
 from agents.enhanced_requirement_agent import enhanced_requirement_agent
 from agents.review_agent import review_agent
 import asyncio
+import logging
 
 # Page configuration
 st.set_page_config(
@@ -197,239 +198,156 @@ st.markdown("""
         font-size: 2.5rem;
         font-weight: 300;
         color: #495057;
-        margin: 0.5rem 0;
-        letter-spacing: -1px;
+        margin-bottom: 0.5rem;
     }
     
     .score-label {
         color: #6c757d;
         font-size: 0.9rem;
-        margin: 0;
-        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
     
-    /* Issue highlighting - subtle and clean */
-    .highlight-issue {
-        background: #fff9e6;
-        border-left: 2px solid #ffc107;
-        padding: 4px 8px;
-        margin: 3px 0;
-        border-radius: 4px;
+    /* Input focus states */
+    .stTextArea textarea:focus {
+        border-color: #6c757d !important;
+        box-shadow: 0 0 0 3px rgba(108, 117, 125, 0.1) !important;
     }
     
-    /* Welcome section - spacious and clean */
-    .welcome-section {
-        background: white;
-        padding: 2.5rem;
-        border-radius: 12px;
-        border: 1px solid #e9ecef;
-        margin: 2rem 0;
-        text-align: left;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    
-    .welcome-section h2 {
-        color: #495057;
-        margin-bottom: 1.5rem;
-        font-size: 1.5rem;
-        font-weight: 400;
-        letter-spacing: -0.5px;
-    }
-    
-    .welcome-section p {
-        color: #6c757d;
-        margin-bottom: 2rem;
-        line-height: 1.7;
-        font-weight: 400;
-    }
-    
-    /* Example cards - minimal and elegant */
-    .example-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1.5rem;
-        margin-top: 2rem;
-    }
-    
-    .example-item {
-        background: #fdfdfd;
-        border: 1px solid #f1f3f4;
-        border-radius: 8px;
-        padding: 1.5rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        text-align: center;
-    }
-    
-    .example-item:hover {
-        background: white;
-        border-color: #dee2e6;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    
-    /* Review section - clean and organized */
-    .review-content {
-        background: white;
-        padding: 2rem;
-        border-radius: 12px;
-        border: 1px solid #e9ecef;
-        margin: 1.5rem 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    
-    /* Text areas and inputs - clean borders */
-    .stTextArea > div > div > textarea {
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-        padding: 1rem;
-        font-size: 0.95rem;
-    }
-    
-    .stTextInput > div > div > input {
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-        padding: 0.75rem;
-    }
-    
-    /* Info boxes - subtle styling */
-    .stInfo {
-        border-radius: 8px;
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-    }
-    
-    /* Reduced element spacing */
+    /* Refined spacing */
     .element-container {
         margin-bottom: 1rem;
     }
     
-    /* Clean typography */
-    h3 {
-        color: #495057;
-        font-size: 1.2rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #f1f3f4;
-        padding-bottom: 0.75rem;
-        font-weight: 400;
-        letter-spacing: -0.3px;
-    }
-    
-    h4 {
-        color: #6c757d;
-        font-size: 1rem;
-        margin-bottom: 1rem;
-        font-weight: 400;
-    }
-    
-    /* Custom scrollbar for cleaner look */
-    ::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: #f8f9fa;
-    }
-    
-    ::-webkit-scrollbar-thumb {
-        background: #dee2e6;
-        border-radius: 3px;
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: #adb5bd;
-    }
-    
-    /* Remove default streamlit styling */
-    .stApp > header {
-        background: transparent;
-    }
-    
-    /* Clean selectbox styling */
+    /* Clean selectbox */
     .stSelectbox > div > div {
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-    }
-    
-    /* Spacing improvements */
-    .css-1kyxreq {
-        margin-top: 1rem;
-    }
-    
-    /* Footer spacing */
-    .css-164nlkn {
-        margin-top: 3rem;
-    }
-    
-    /* Knowledge Base Features */
-    .kb-panel {
-        background: #f8f9fa;
+        background-color: white;
         border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 1.5rem;
-        margin: 1rem 0;
     }
     
-    .kb-suggestions {
-        background: white;
-        border-left: 3px solid #17a2b8;
+    /* Improved file uploader */
+    .stFileUploader > div {
+        background-color: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+    }
+    
+    .stFileUploader > div:hover {
+        border-color: #6c757d;
+        background-color: #f1f3f4;
+    }
+    
+    /* Sidebar file uploader - more compact */
+    .css-1d391kg .stFileUploader > div {
         padding: 1rem;
+        border: 1px dashed #dee2e6;
+        background-color: #fdfdfd;
         margin: 0.5rem 0;
-        border-radius: 4px;
+    }
+    
+    .css-1d391kg .stFileUploader > div:hover {
+        border-color: #6c757d;
+        background-color: #f8f9fa;
+    }
+    
+    /* Sidebar file uploader text */
+    .css-1d391kg .stFileUploader label {
+        font-size: 0.8rem !important;
+        color: #6c757d !important;
+    }
+    
+    /* Sidebar button styling */
+    .css-1d391kg .stButton > button {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        margin: 0.25rem 0;
+    }
+    
+    /* Enhanced progress indicators */
+    .stProgress > div > div {
+        background-color: #6c757d;
+    }
+    
+    /* Improved alerts */
+    .stAlert {
+        border-radius: 8px;
+        border: none;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     
-    .kb-question-card {
-        background: white;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        padding: 0.75rem;
-        margin: 0.5rem 0;
-        cursor: pointer;
-        transition: all 0.2s ease;
+    /* Hide streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    
+    /* Custom knowledge base panel */
+    .kb-panel {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        margin-bottom: 1rem;
+    }
+    
+    .kb-panel h4 {
+        margin: 0 0 0.5rem 0;
+        color: #495057;
         font-size: 0.9rem;
     }
     
-    .kb-question-card:hover {
-        border-color: #007bff;
+    .kb-panel p {
+        margin: 0;
+        color: #6c757d;
+        font-size: 0.8rem;
+    }
+    
+    /* Smart questions styling */
+    .smart-question {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 0.5rem;
+        margin: 0.25rem 0;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .smart-question:hover {
         background: #f8f9fa;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-color: #6c757d;
     }
     
-    .kb-status-badge {
-        display: inline-block;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        margin-left: 0.5rem;
-    }
-    
-    .kb-enabled {
-        background: #d4edda;
-        color: #155724;
-    }
-    
-    .kb-disabled {
-        background: #f8d7da;
-        color: #721c24;
-    }
-    
+    /* Improvement suggestions */
     .improvement-card {
-        background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
-        border: 1px solid #ffc107;
-        border-radius: 8px;
-        padding: 1rem;
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 6px;
+        padding: 0.75rem;
         margin: 0.5rem 0;
+        font-size: 0.9rem;
+        color: #856404;
+    }
+    
+    .kb-suggestions {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        border-radius: 6px;
+        padding: 0.75rem;
+        margin: 0.5rem 0;
+        font-size: 0.9rem;
+        color: #0c5460;
     }
     
     .completeness-score {
-        text-align: center;
-        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         background: white;
-        border-radius: 8px;
         border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 1rem;
         margin: 1rem 0;
     }
     
@@ -437,241 +355,83 @@ st.markdown("""
         width: 60px;
         height: 60px;
         border-radius: 50%;
-        margin: 0 auto 0.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.2rem;
-        font-weight: 600;
-        color: white;
-    }
-    
-    .score-excellent { background: #28a745; }
-    .score-good { background: #17a2b8; }
-    .score-fair { background: #ffc107; color: #212529; }
-    .score-poor { background: #dc3545; }
-    
-    /* Document Upload Styles */
-    .upload-section {
-        background: white;
-        border: 2px dashed #dee2e6;
-        border-radius: 12px;
-        padding: 2rem;
-        margin: 1.5rem 0;
-        text-align: center;
-        transition: all 0.2s ease;
-    }
-    
-    .upload-section:hover {
-        border-color: #007bff;
-        background: #f8f9fa;
-    }
-    
-    .upload-icon {
-        font-size: 3rem;
-        color: #6c757d;
-        margin-bottom: 1rem;
-    }
-    
-    .upload-text {
-        color: #6c757d;
-        font-size: 1rem;
+        font-weight: 500;
         margin-bottom: 0.5rem;
     }
     
-    .upload-subtext {
-        color: #adb5bd;
-        font-size: 0.85rem;
+    .score-excellent {
+        background: #d4edda;
+        color: #155724;
+        border: 2px solid #28a745;
     }
     
-    .file-list {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 1rem 0;
+    .score-good {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 2px solid #17a2b8;
     }
     
-    .file-item {
-        display: flex;
-        align-items: center;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #e9ecef;
+    .score-fair {
+        background: #fff3cd;
+        color: #856404;
+        border: 2px solid #ffc107;
     }
     
-    .file-item:last-child {
-        border-bottom: none;
+    .score-poor {
+        background: #f8d7da;
+        color: #721c24;
+        border: 2px solid #dc3545;
     }
     
-    .file-icon {
-        margin-right: 0.5rem;
-        color: #6c757d;
-    }
-    
-    .file-success {
-        color: #28a745;
-        font-weight: 500;
-    }
-    
-    .file-error {
-        color: #dc3545;
-        font-weight: 500;
-    }
-    
-    /* File uploader styling */
-    .stFileUploader > div {
-        border-radius: 12px;
-        border: 2px dashed #dee2e6;
-        padding: 1.5rem;
-        text-align: center;
+    /* Welcome section styling */
+    .welcome-section {
         background: white;
-        transition: all 0.2s ease;
+        padding: 2rem;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        margin-bottom: 2rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     
-    .stFileUploader > div:hover {
-        border-color: #007bff;
-        background: #f8f9fa;
+    .welcome-section h2 {
+        margin: 0 0 1rem 0;
+        color: #343a40;
+        font-size: 1.5rem;
+        font-weight: 500;
     }
     
-    .stFileUploader label {
-        color: #6c757d !important;
-        font-weight: 400 !important;
-    }
-    
-    /* Upload progress */
-    .upload-progress {
-        background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
-        color: white;
-        padding: 0.75rem;
-        border-radius: 6px;
-        margin: 0.5rem 0;
-        text-align: center;
+    .welcome-section p {
+        margin: 0;
+        color: #6c757d;
+        line-height: 1.6;
     }
 </style>
 """, unsafe_allow_html=True)
 
 def initialize_session_state():
-    """Initialize session state with multi-session support"""
-    # Initialize sessions structure
-    if 'sessions' not in st.session_state:
-        st.session_state.sessions = {}
+    """Initialize simplified session state"""
+    # Initialize basic session state
+    if 'current_phase' not in st.session_state:
+        st.session_state.current_phase = 'input'
     
-    # Initialize current session ID
-    if 'current_session_id' not in st.session_state:
-        st.session_state.current_session_id = None
+    if 'original_requirement' not in st.session_state:
+        st.session_state.original_requirement = ''
     
-    # Initialize session counter for unique IDs
-    if 'session_counter' not in st.session_state:
-        st.session_state.session_counter = 0
+    if 'enhanced_requirement' not in st.session_state:
+        st.session_state.enhanced_requirement = ''
     
-    # Create default session if no sessions exist
-    if not st.session_state.sessions and st.session_state.current_session_id is None:
-        create_new_session()
-
-def create_new_session(title=None):
-    """Create a new chat session"""
-    st.session_state.session_counter += 1
-    session_id = f"session_{st.session_state.session_counter}"
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = []
     
-    if title is None:
-        title = f"New Session {st.session_state.session_counter}"
+    if 'review_result' not in st.session_state:
+        st.session_state.review_result = None
     
-    st.session_state.sessions[session_id] = {
-        'id': session_id,
-        'title': title,
-        'created_at': time.time(),
-        'current_phase': 'input',
-        'original_requirement': '',
-        'enhanced_requirement': '',
-        'chat_history': [],
-        'review_result': None
-    }
-    
-    st.session_state.current_session_id = session_id
-    return session_id
-
-def get_current_session():
-    """Get current session data"""
-    if st.session_state.current_session_id and st.session_state.current_session_id in st.session_state.sessions:
-        return st.session_state.sessions[st.session_state.current_session_id]
-    return None
-
-def update_session_data(key, value):
-    """Update current session data"""
-    if st.session_state.current_session_id and st.session_state.current_session_id in st.session_state.sessions:
-        st.session_state.sessions[st.session_state.current_session_id][key] = value
-
-def switch_to_session(session_id):
-    """Switch to a specific session"""
-    if session_id in st.session_state.sessions:
-        st.session_state.current_session_id = session_id
-
-def delete_session(session_id):
-    """Delete a session"""
-    if session_id in st.session_state.sessions:
-        del st.session_state.sessions[session_id]
-        
-        # If deleting current session, switch to another or create new
-        if st.session_state.current_session_id == session_id:
-            if st.session_state.sessions:
-                st.session_state.current_session_id = list(st.session_state.sessions.keys())[0]
-            else:
-                create_new_session()
-
-def show_chat_history_sidebar():
-    """Display chat history navigation in sidebar"""
-    with st.sidebar:
-        st.markdown("### 💬 Chat Sessions")
-        
-        # New session button
-        if st.button("➕ New Session", use_container_width=True, key="new_session_btn"):
-            create_new_session()
-            st.rerun()
-        
-        st.markdown("---")
-        
-        # Display session list
-        if st.session_state.sessions:
-            for session_id, session_data in st.session_state.sessions.items():
-                is_current = session_id == st.session_state.current_session_id
-                
-                # Session title with status indicator
-                title = session_data.get('title', 'Untitled Session')
-                phase = session_data.get('current_phase', 'input')
-                
-                # Phase icon
-                phase_icon = {
-                    'input': '📝',
-                    'enhance': '🔄', 
-                    'review': '✅'
-                }.get(phase, '📝')
-                
-                # Truncate long titles
-                if len(title) > 25:
-                    display_title = title[:22] + "..."
-                else:
-                    display_title = title
-                
-                # Session button with current indicator
-                button_style = "🔵 " if is_current else ""
-                button_text = f"{button_style}{phase_icon} {display_title}"
-                
-                col1, col2 = st.columns([4, 1])
-                
-                with col1:
-                    if st.button(button_text, key=f"session_btn_{session_id}", use_container_width=True):
-                        if not is_current:
-                            switch_to_session(session_id)
-                            st.rerun()
-                
-                with col2:
-                    # Delete button for non-current sessions or if more than one session exists
-                    if len(st.session_state.sessions) > 1:
-                        if st.button("🗑️", key=f"del_btn_{session_id}", help="Delete session"):
-                            delete_session(session_id)
-                            st.rerun()
-        
-        st.markdown("---")
+    if 'show_knowledge_graph' not in st.session_state:
+        st.session_state.show_knowledge_graph = False
 
 def show_model_selector():
     """Display model selector in sidebar"""
@@ -709,17 +469,106 @@ def show_model_selector():
                 st.success("🟢 **LightRAG Enabled**\n\nAdvanced knowledge processing active")
             else:
                 st.warning("🟡 **Basic Mode**\n\nInstall LightRAG for advanced features")
-        except:
-            st.error("🔴 **Not Available**\n\nKnowledge base disabled")
-        
-        # Show uploaded documents
-        if 'uploaded_documents' in st.session_state and st.session_state.uploaded_documents:
-            st.markdown("**📄 Uploaded Documents:**")
-            for i, doc in enumerate(st.session_state.uploaded_documents[-3:]):  # Show last 3
-                st.markdown(f"• `{doc['filename']}`")
             
-            if len(st.session_state.uploaded_documents) > 3:
-                st.markdown(f"*...and {len(st.session_state.uploaded_documents) - 3} more*")
+            # Show Knowledge Graph button if we have documents OR LightRAG is initialized
+            docs_summary = knowledge_base_service.get_documents_summary()
+            can_show_graph = knowledge_base_service.is_initialized or docs_summary['total_documents'] > 0
+            
+            if can_show_graph:
+                # Knowledge Graph Visualization Button
+                if st.button("🕸️ View Knowledge Graph", use_container_width=True, key="kg_btn"):
+                    st.session_state.show_knowledge_graph = True
+                    st.rerun()
+            else:
+                st.info("💡 Upload documents to enable knowledge graph visualization")
+                
+            # Show document summary
+            if docs_summary['total_documents'] > 0:
+                st.markdown(f"""
+                **📊 Knowledge Base Summary:**
+                - **Total Documents:** {docs_summary['total_documents']}
+                - **Total Size:** {docs_summary['total_size_mb']} MB
+                - **File Types:** {', '.join(docs_summary['file_types'].keys())}
+                """)
+                
+                # Show recent documents
+                uploaded_docs = knowledge_base_service.get_uploaded_documents()
+                if uploaded_docs:
+                    st.markdown("**📄 Recent Documents:**")
+                    # Show last 3 documents
+                    for doc in uploaded_docs[-3:]:
+                        upload_time = doc['upload_time'][:10]  # Show date only
+                        st.markdown(f"• `{doc['filename']}` ({upload_time})")
+                    
+                    if len(uploaded_docs) > 3:
+                        st.markdown(f"*...and {len(uploaded_docs) - 3} more*")
+                    
+                    # Document management expander
+                    with st.expander("📁 Manage Documents"):
+                        st.markdown("**All Uploaded Documents:**")
+                        for i, doc in enumerate(uploaded_docs):
+                            col1, col2 = st.columns([3, 1])
+                            with col1:
+                                st.markdown(f"📄 `{doc['filename']}`")
+                                st.caption(f"Size: {doc['file_size'] // 1024} KB | Type: {doc['file_type']}")
+                                if doc['content_preview']:
+                                    st.caption(f"Preview: {doc['content_preview'][:50]}...")
+                            with col2:
+                                if st.button("🗑️", key=f"del_doc_{i}", help=f"Delete {doc['filename']}"):
+                                    with st.spinner(f"Deleting {doc['filename']}..."):
+                                        loop = asyncio.new_event_loop()
+                                        asyncio.set_event_loop(loop)
+                                        
+                                        result = loop.run_until_complete(
+                                            knowledge_base_service.remove_document(doc['filename'])
+                                        )
+                                        loop.close()
+                                        
+                                        if result['success']:
+                                            st.success(f"Deleted {doc['filename']}")
+                                            st.rerun()
+                                        else:
+                                            st.error(f"Failed to delete: {result['error']}")
+            else:
+                st.info("📄 No documents uploaded yet.")
+                
+        except Exception as e:
+            st.error(f"🔴 **Not Available**\n\nKnowledge base error: {str(e)}")
+        
+        # Document Upload Section - moved from welcome screen
+        st.markdown("---")
+        st.markdown("### 📚 Upload Documents")
+        
+        # Show current knowledge base status briefly
+        try:
+            docs_summary = knowledge_base_service.get_documents_summary()
+            if docs_summary['total_documents'] > 0:
+                st.markdown(f"💡 **{docs_summary['total_documents']} documents** ready to enhance AI analysis")
+            else:
+                st.markdown("📄 Upload documents to enhance AI capabilities")
+        except:
+            st.markdown("📄 Upload documents to enhance AI capabilities")
+        
+        # File uploader in sidebar
+        uploaded_files = st.file_uploader(
+            "Choose files",
+            type=['txt', 'pdf', 'docx', 'doc'],
+            accept_multiple_files=True,
+            label_visibility="collapsed",
+            help="Supported: TXT, PDF, DOCX, DOC",
+            key="sidebar_file_uploader"
+        )
+        
+        if uploaded_files:
+            # Show files ready to upload
+            st.markdown("**📄 Ready to process:**")
+            for file in uploaded_files:
+                file_size = len(file.getvalue()) / 1024  # KB
+                st.markdown(f"• `{file.name}` ({file_size:.1f} KB)")
+            
+            # Process button
+            if st.button("🔄 Process Documents", type="secondary", use_container_width=True, key="sidebar_process_btn"):
+                process_uploaded_documents(uploaded_files)
         
         return selected_model
 
@@ -734,10 +583,6 @@ def show_header():
 
 def show_phase_indicator():
     """Show current phase indicator"""
-    current_session = get_current_session()
-    if not current_session:
-        return
-        
     phases = [
         ('input', '1. Input Requirements'),
         ('enhance', '2. Enhancement & Review'),
@@ -747,10 +592,10 @@ def show_phase_indicator():
     phase_html = '<div class="phase-tracker">'
     
     for phase_id, phase_name in phases:
-        if phase_id == current_session['current_phase']:
+        if phase_id == st.session_state.current_phase:
             class_name = "phase-item phase-current"
-        elif (phase_id == 'enhance' and current_session['current_phase'] == 'review') or \
-             (phase_id == 'input' and current_session['current_phase'] in ['enhance', 'review']):
+        elif (phase_id == 'enhance' and st.session_state.current_phase == 'review') or \
+             (phase_id == 'input' and st.session_state.current_phase in ['enhance', 'review']):
             class_name = "phase-item phase-complete"
         else:
             class_name = "phase-item phase-pending"
@@ -785,51 +630,41 @@ def show_welcome_screen():
     with col2:
         if st.button("✨ Analyze", type="primary", use_container_width=True):
             if requirement.strip():
-                # Update current session with requirement and generate title
-                update_session_data('original_requirement', requirement.strip())
-                update_session_data('current_phase', 'enhance')
-                
-                # Generate session title from requirement (first 30 chars)
-                title = requirement.strip()[:30]
-                if len(requirement.strip()) > 30:
-                    title += "..."
-                update_session_data('title', title)
-                
+                # Update session state
+                st.session_state.original_requirement = requirement.strip()
+                st.session_state.current_phase = 'enhance'
                 st.rerun()
             else:
                 st.warning("Please describe your project first.")
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Document Upload Section for Knowledge Base
-    st.markdown("### 📚 Build Knowledge Base")
-    st.markdown("Upload documents to enhance the AI's domain expertise for your project:")
+    # Optional: Add some helpful tips or examples
+    st.markdown("### 💡 Tips for Better Requirements")
     
-    # Upload area
-    st.markdown('<div class="input-section">', unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
     
-    uploaded_files = st.file_uploader(
-        "Upload Documents for Knowledge Base",
-        type=['txt', 'pdf', 'docx', 'doc'],
-        accept_multiple_files=True,
-        label_visibility="collapsed",
-        help="Supported formats: TXT, PDF, DOCX, DOC"
-    )
-    
-    if uploaded_files:
-        col1, col2 = st.columns([3, 1])
+    with col1:
+        st.markdown("""
+        **🎯 Be Specific**
+        - Mention target users
+        - Include key features
+        - Specify platforms needed
         
-        with col1:
-            st.markdown("**📄 Files ready to upload:**")
-            for file in uploaded_files:
-                file_size = len(file.getvalue()) / 1024  # KB
-                st.markdown(f"- `{file.name}` ({file_size:.1f} KB)")
-        
-        with col2:
-            if st.button("🔄 Process Documents", type="secondary", use_container_width=True):
-                process_uploaded_documents(uploaded_files)
+        **📱 Consider Context**
+        - Business goals
+        - Technical constraints  
+        - Timeline expectations
+        """)
     
-    st.markdown('</div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown("""
+        **✨ Good Example:**
+        *"A mobile-first e-commerce app for local artisans to sell handmade goods. Need inventory management, payment processing, and customer reviews. Targeting iOS/Android with 1000+ concurrent users."*
+        
+        **❌ Too Vague:**
+        *"Make a website for selling stuff."*
+        """)
 
 def show_chat_message(role, content, timestamp=None):
     """Display a chat message"""
@@ -851,10 +686,6 @@ def show_chat_message(role, content, timestamp=None):
 
 def show_enhancement_phase(selected_model):
     """Show requirement enhancement phase with knowledge base integration"""
-    current_session = get_current_session()
-    if not current_session:
-        return
-        
     st.markdown("### Requirements Enhancement")
     
     # Knowledge Base Status Panel
@@ -873,9 +704,9 @@ def show_enhancement_phase(selected_model):
         """, unsafe_allow_html=True)
         
         # Show smart questions if available
-        if current_session['original_requirement']:
+        if st.session_state.original_requirement:
             smart_questions = enhanced_requirement_agent.get_smart_questions(
-                current_session['original_requirement']
+                st.session_state.original_requirement
             )
             
             if smart_questions:
@@ -887,7 +718,7 @@ def show_enhancement_phase(selected_model):
     
     with col1:
         # Initialize conversation if empty
-        if not current_session['chat_history']:
+        if not st.session_state.chat_history:
             with st.spinner("🧠 Analyzing requirements with AI knowledge base..."):
                 # Try enhanced agent with knowledge base first
                 try:
@@ -896,258 +727,270 @@ def show_enhancement_phase(selected_model):
                     
                     result = loop.run_until_complete(
                         enhanced_requirement_agent.enhance_requirement_with_kb(
-                            current_session['original_requirement'],
+                            st.session_state.original_requirement,
                             selected_model
                         )
                     )
+                    loop.close()
                     
-                    if result["success"]:
-                        initial_message = f"**Original requirement:** {current_session['original_requirement']}"
+                    if result['success']:
+                        st.session_state.enhanced_requirement = result['enhanced_requirement']
                         
-                        # Show knowledge base suggestions if available
-                        kb_suggestions_text = ""
-                        if result.get("kb_suggestions"):
-                            kb_suggestions_text = "\n\n**🧠 Knowledge Base Insights:**\n"
-                            for suggestion in result["kb_suggestions"]:
-                                kb_suggestions_text += f"- {suggestion}\n"
+                        # Add to chat history
+                        st.session_state.chat_history.append({
+                            "role": "user",
+                            "content": st.session_state.original_requirement,
+                            "timestamp": time.time()
+                        })
                         
-                        chat_history = [
-                            {"role": "user", "content": initial_message},
-                            {"role": "assistant", "content": result["enhanced_requirement"] + kb_suggestions_text}
-                        ]
-                        update_session_data('chat_history', chat_history)
-                        update_session_data('enhanced_requirement', result["enhanced_requirement"])
-                        
-                        # Store KB suggestions for later use
-                        if result.get("kb_suggestions"):
-                            update_session_data('kb_suggestions', result["kb_suggestions"])
-                        
-                        st.rerun()
+                        st.session_state.chat_history.append({
+                            "role": "assistant", 
+                            "content": result['enhanced_requirement'],
+                            "timestamp": time.time(),
+                            "kb_used": result.get('knowledge_base_used', False),
+                            "suggestions": result.get('kb_suggestions', []),
+                            "questions": result.get('clarification_questions', [])
+                        })
                     else:
-                        raise Exception("Enhanced agent failed")
+                        st.error(f"Failed to enhance requirements: {result.get('error', 'Unknown error')}")
                         
                 except Exception as e:
-                    # Fallback to regular agent
-                    result = requirement_agent.enhance_requirement(
-                        current_session['original_requirement'],
-                        selected_model
-                    )
-                    if result["success"]:
-                        chat_history = [
-                            {"role": "user", "content": f"Original requirement: {current_session['original_requirement']}"},
-                            {"role": "assistant", "content": result["enhanced_requirement"]}
-                        ]
-                        update_session_data('chat_history', chat_history)
-                        update_session_data('enhanced_requirement', result["enhanced_requirement"])
-                        st.rerun()
-                    else:
-                        st.error(f"Analysis failed: {result['error']}")
-                        return
-                finally:
-                    if 'loop' in locals():
-                        loop.close()
+                    st.error(f"Error during requirement enhancement: {str(e)}")
+                    logging.error(f"Enhancement error: {e}")
         
         # Display chat history
-        for message in current_session['chat_history']:
+        for message in st.session_state.chat_history:
             show_chat_message(message["role"], message["content"])
         
-        # Show requirement improvement suggestions
-        if current_session['enhanced_requirement']:
-            show_requirement_improvements(current_session['enhanced_requirement'])
-    
-    # Input for continuing conversation
-    st.markdown('<div class="input-section">', unsafe_allow_html=True)
-    
-    col1, col2 = st.columns([5, 1])
-    
-    with col1:
-        # Pre-fill with selected question if any
-        default_value = st.session_state.get('selected_question', '')
-        if default_value:
-            del st.session_state['selected_question']  # Clear after use
+        # Chat input area
+        st.markdown("---")
         
-        user_input = st.text_input(
-            "Additional clarifications or modifications",
-            placeholder="Ask questions or request changes to the requirements...",
-            key="chat_input",
-            value=default_value
+        # Check for selected question
+        initial_text = ""
+        if 'selected_question' in st.session_state:
+            initial_text = st.session_state['selected_question']
+            del st.session_state['selected_question']
+        
+        user_input = st.text_area(
+            "Ask follow-up questions or provide additional information:",
+            value=initial_text,
+            height=100,
+            placeholder="Example: What specific payment methods should be supported? Can you add mobile app requirements?",
+            key="chat_input"
         )
-    
-    with col2:
-        st.markdown("<br>", unsafe_allow_html=True)  # Align button with input
         
-        send_col, review_col = st.columns(2)
+        col1_inner, col2_inner, col3_inner = st.columns([1, 1, 1])
         
-        with send_col:
-            if st.button("Send", key="send_btn"):
+        with col1_inner:
+            if st.button("💬 Continue Discussion", use_container_width=True):
                 if user_input.strip():
                     # Add user message
-                    new_chat_history = current_session['chat_history'] + [{
-                        "role": "user", 
-                        "content": user_input.strip()
-                    }]
-                    update_session_data('chat_history', new_chat_history)
+                    st.session_state.chat_history.append({
+                        "role": "user",
+                        "content": user_input.strip(),
+                        "timestamp": time.time()
+                    })
                     
-                    # Get AI response with knowledge base
-                    with st.spinner("🧠 Processing with knowledge base..."):
+                    # Get clarification from enhanced agent
+                    with st.spinner("🔄 Processing your input..."):
                         try:
                             loop = asyncio.new_event_loop()
                             asyncio.set_event_loop(loop)
                             
                             result = loop.run_until_complete(
                                 enhanced_requirement_agent.clarify_requirement_with_kb(
-                                    current_session['enhanced_requirement'],
+                                    st.session_state.enhanced_requirement,
                                     user_input.strip(),
                                     selected_model
                                 )
                             )
+                            loop.close()
                             
-                            if result["success"]:
-                                response_content = result["clarified_requirement"]
+                            if result['success']:
+                                st.session_state.enhanced_requirement = result['clarified_requirement']
                                 
-                                # Add additional suggestions if available
-                                if result.get("additional_suggestions"):
-                                    response_content += "\n\n**💡 Additional Insights:**\n"
-                                    for suggestion in result["additional_suggestions"]:
-                                        response_content += f"- {suggestion}\n"
-                                
-                                final_chat_history = new_chat_history + [{
+                                # Add assistant response
+                                st.session_state.chat_history.append({
                                     "role": "assistant",
-                                    "content": response_content
-                                }]
-                                update_session_data('chat_history', final_chat_history)
-                                update_session_data('enhanced_requirement', result["clarified_requirement"])
-                                st.rerun()
+                                    "content": result['clarified_requirement'],
+                                    "timestamp": time.time(),
+                                    "kb_used": result.get('knowledge_base_used', False)
+                                })
                             else:
-                                raise Exception("Enhanced agent failed")
+                                st.error(f"Failed to process input: {result.get('error', 'Unknown error')}")
                                 
                         except Exception as e:
-                            # Fallback to regular agent
-                            result = requirement_agent.clarify_requirement(
-                                current_session['enhanced_requirement'],
-                                user_input.strip(),
-                                selected_model
-                            )
-                            if result["success"]:
-                                final_chat_history = new_chat_history + [{
-                                    "role": "assistant",
-                                    "content": result["clarified_requirement"]
-                                }]
-                                update_session_data('chat_history', final_chat_history)
-                                update_session_data('enhanced_requirement', result["clarified_requirement"])
-                                st.rerun()
-                            else:
-                                st.error(f"Processing failed: {result['error']}")
-                        finally:
-                            if 'loop' in locals():
-                                loop.close()
-        
-        with review_col:
-            if st.button("Review", key="review_btn"):
-                if current_session['enhanced_requirement']:
-                    update_session_data('current_phase', 'review')
+                            st.error(f"Error processing input: {str(e)}")
+                            logging.error(f"Clarification error: {e}")
+                    
                     st.rerun()
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+                else:
+                    st.warning("Please enter your question or additional information.")
+        
+        with col2_inner:
+            if st.button("📋 Review Requirements", use_container_width=True):
+                if st.session_state.enhanced_requirement:
+                    st.session_state.current_phase = 'review'
+                    st.rerun()
+                else:
+                    st.warning("No enhanced requirements to review yet.")
+        
+        with col3_inner:
+            if st.button("🔄 Start Over", use_container_width=True):
+                # Reset session state
+                st.session_state.current_phase = 'input'
+                st.session_state.original_requirement = ''
+                st.session_state.enhanced_requirement = ''
+                st.session_state.chat_history = []
+                st.session_state.review_result = None
+                st.rerun()
 
 def show_review_phase(selected_model):
     """Show requirement review phase"""
-    current_session = get_current_session()
-    if not current_session:
-        return
-        
     st.markdown("### Quality Assessment")
     
-    # Perform review if not done yet
-    if not current_session['review_result']:
-        with st.spinner("Conducting quality assessment..."):
-            result = review_agent.review_requirement(
-                current_session['enhanced_requirement'],
+    if not st.session_state.enhanced_requirement:
+        st.warning("No enhanced requirements to review. Please go back to the enhancement phase.")
+        if st.button("← Back to Enhancement"):
+            st.session_state.current_phase = 'enhance'
+            st.rerun()
+        return
+    
+    # Auto-review if not done yet
+    if not st.session_state.review_result:
+        with st.spinner("🔍 Conducting quality assessment..."):
+            review_result = review_agent.review_requirement(
+                st.session_state.enhanced_requirement, 
                 selected_model
             )
-            update_session_data('review_result', result)
+            st.session_state.review_result = review_result
     
-    if current_session['review_result'] and current_session['review_result']["success"]:
-        review_data = current_session['review_result']["review"]
+    # Display current requirement
+    st.markdown("#### 📄 Enhanced Requirements")
+    st.markdown(f"""
+    <div class="assistant-message-container">
+        <div class="message-box assistant-message">
+            {st.session_state.enhanced_requirement}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Display review results
+    if st.session_state.review_result and st.session_state.review_result['success']:
+        review_data = st.session_state.review_result['review']
         
-        col1, col2 = st.columns([3, 1])
+        col1, col2 = st.columns([2, 1])
         
         with col1:
-            st.markdown("#### Final Requirements Document")
+            st.markdown("#### 🔍 Quality Assessment Results")
             
-            # Display highlighted requirements
-            highlighted_text = review_agent.highlight_issues(
-                current_session['enhanced_requirement'],
-                review_data.get("issues", [])
-            )
+            # Issues
+            issues = review_data.get('issues', [])
+            if issues:
+                for issue in issues:
+                    issue_type = issue.get('type', 'info')
+                    issue_text = issue.get('text', '')
+                    suggestion = issue.get('suggestion', '')
+                    
+                    if issue_type == 'error':
+                        st.error(f"❌ **{issue_text}**\n\n💡 {suggestion}")
+                    elif issue_type == 'warning':
+                        st.warning(f"⚠️ **{issue_text}**\n\n💡 {suggestion}")
+                    else:
+                        st.info(f"💡 **{issue_text}**\n\n✨ {suggestion}")
+            else:
+                st.success("✅ No major issues found in the requirements!")
             
-            st.markdown(f"""
-            <div class="review-content">
-                {highlighted_text}
-            </div>
-            """, unsafe_allow_html=True)
+            # Summary
+            summary = review_data.get('summary', '')
+            if summary:
+                st.markdown("#### 📋 Summary")
+                st.markdown(summary)
         
         with col2:
             # Score display
-            score = review_data.get("score", 0)
-            
+            score = review_data.get('score', 5)
+            if score >= 8:
+                score_class = "score-excellent"
+            elif score >= 6:
+                score_class = "score-good"
+            elif score >= 4:
+                score_class = "score-fair"
+            else:
+                score_class = "score-poor"
+                
             st.markdown(f"""
-            <div class="score-card">
-                <div class="score-label">Quality Score</div>
-                <div class="score-value">{score}/10</div>
-                <div class="score-label">Overall Rating</div>
+            <div class="completeness-score">
+                <div class="score-ring {score_class}">
+                    {score}/10
+                </div>
+                <div>Quality Score</div>
             </div>
             """, unsafe_allow_html=True)
-            
-            # Summary
-            st.markdown("#### Assessment Summary")
-            st.info(review_data.get("summary", "No summary available"))
-            
-            # Issues list
-            issues = review_data.get("issues", [])
-            if issues:
-                st.markdown(f"#### Issues Identified ({len(issues)})")
-                
-                for i, issue in enumerate(issues):
-                    icon = "🔴" if issue["type"] == "error" else "🟡" if issue["type"] == "warning" else "🔵"
-                    
-                    with st.expander(f"{icon} {issue['location']}", expanded=False):
-                        st.markdown(f"**Issue:** {issue['text']}")
-                        st.markdown(f"**Recommendation:** {issue['suggestion']}")
-            else:
-                st.success("✅ No issues identified. Requirements are well-structured.")
-            
-            # Navigation
-            st.markdown("---")
-            if st.button("← Back to Enhancement", use_container_width=True):
-                update_session_data('current_phase', 'enhance')
-                update_session_data('review_result', None)
-                st.rerun()
-    
     else:
-        st.error("Assessment failed. Please try again.")
-        if st.button("Retry Assessment"):
-            update_session_data('review_result', None)
+        st.error("Failed to generate quality assessment.")
+    
+    # Show improvements from knowledge base
+    show_requirement_improvements(st.session_state.enhanced_requirement)
+    
+    # Action buttons
+    st.markdown("---")
+    col1, col2, col3 = st.columns([1, 1, 1])
+    
+    with col1:
+        if st.button("← Back to Enhancement", use_container_width=True):
+            st.session_state.current_phase = 'enhance'
+            st.rerun()
+    
+    with col2:
+        if st.button("🔄 Re-analyze", use_container_width=True):
+            st.session_state.review_result = None
+            st.rerun()
+    
+    with col3:
+        if st.button("🔄 Start Over", use_container_width=True):
+            # Reset session state
+            st.session_state.current_phase = 'input'
+            st.session_state.original_requirement = ''
+            st.session_state.enhanced_requirement = ''
+            st.session_state.chat_history = []
+            st.session_state.review_result = None
             st.rerun()
 
 def show_requirement_improvements(requirement_text: str):
-    """显示需求改进建议"""
+    """Show AI-suggested requirement improvements"""
     try:
-        # Get improvement suggestions
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        # Import here to avoid circular imports
+        from services.knowledge_base import knowledge_base_service
         
-        improvements = loop.run_until_complete(
-            enhanced_requirement_agent.suggest_requirement_improvements(requirement_text)
-        )
+        if not knowledge_base_service.is_initialized:
+            return
         
-        if improvements.get("success"):
-            improvement_data = improvements["improvements"]
+        with st.spinner("🧠 Analyzing improvement opportunities..."):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            
+            improvement_result = loop.run_until_complete(
+                enhanced_requirement_agent.suggest_requirement_improvements(requirement_text)
+            )
+            loop.close()
+            
+        if improvement_result.get('success'):
+            improvement_data = improvement_result['improvements']
+            
+            st.markdown("#### 🚀 Knowledge Base Insights")
             
             # Completeness Score
             score = improvement_data.get("completeness_score", 5)
-            score_class = "score-excellent" if score >= 8 else "score-good" if score >= 6 else "score-fair" if score >= 4 else "score-poor"
-            
+            if score >= 8:
+                score_class = "score-excellent"
+            elif score >= 6:
+                score_class = "score-good"
+            elif score >= 4:
+                score_class = "score-fair"
+            else:
+                score_class = "score-poor"
+                
             st.markdown(f"""
             <div class="completeness-score">
                 <div class="score-ring {score_class}">
@@ -1185,6 +1028,7 @@ def process_uploaded_documents(uploaded_files):
         
         processed_docs = []
         failed_docs = []
+        duplicate_docs = []
         
         with st.spinner("📖 Processing documents..."):
             for file in uploaded_files:
@@ -1193,60 +1037,55 @@ def process_uploaded_documents(uploaded_files):
                     text_content = extract_text_from_file(file)
                     
                     if text_content:
-                        if knowledge_base_service.is_initialized:
-                            # Add to LightRAG knowledge base
-                            loop = asyncio.new_event_loop()
-                            asyncio.set_event_loop(loop)
-                            
-                            # Insert document content into LightRAG
-                            loop.run_until_complete(
-                                knowledge_base_service.rag.ainsert(f"""
-Document: {file.name}
-
-Content:
-{text_content}
-                                """)
-                            )
-                            loop.close()
+                        # Use the new knowledge base service to add document
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        
+                        result = loop.run_until_complete(
+                            knowledge_base_service.add_document(file.name, text_content)
+                        )
+                        loop.close()
+                        
+                        if result['success']:
+                            processed_docs.append(file.name)
+                        elif result.get('duplicate'):
+                            duplicate_docs.append(file.name)
                         else:
-                            # Store documents in session state for future use
-                            if 'uploaded_documents' not in st.session_state:
-                                st.session_state.uploaded_documents = []
-                            
-                            st.session_state.uploaded_documents.append({
-                                'filename': file.name,
-                                'content': text_content,
-                                'timestamp': time.time()
-                            })
-                        
-                        processed_docs.append(file.name)
-                        
+                            failed_docs.append(f"{file.name}: {result['error']}")
                     else:
-                        failed_docs.append(file.name)
+                        failed_docs.append(f"{file.name}: Failed to extract text content")
                         
                 except Exception as e:
-                    failed_docs.append(f"{file.name} (Error: {str(e)})")
+                    failed_docs.append(f"{file.name}: {str(e)}")
         
-        # Show results
+        # Show detailed results - more compact for sidebar
         if processed_docs:
+            st.success(f"✅ **{len(processed_docs)} documents processed**")
             if knowledge_base_service.is_initialized:
-                st.success(f"✅ Successfully processed {len(processed_docs)} documents:")
-                for doc in processed_docs:
-                    st.markdown(f"- ✓ `{doc}`")
-                st.info("🧠 Knowledge base updated! The AI can now use insights from your documents.")
+                st.info("🧠 Knowledge base updated! AI can now use these insights.")
             else:
-                st.success(f"✅ Successfully uploaded {len(processed_docs)} documents:")
-                for doc in processed_docs:
-                    st.markdown(f"- ✓ `{doc}`")
-                st.info("📄 Documents stored for future use. Knowledge base features will be available once LightRAG is properly installed.")
+                st.info("📄 Documents stored for future use.")
+        
+        if duplicate_docs:
+            st.warning(f"⚠️ **{len(duplicate_docs)} duplicates skipped**")
         
         if failed_docs:
-            st.error(f"❌ Failed to process {len(failed_docs)} documents:")
-            for doc in failed_docs:
-                st.markdown(f"- ✗ `{doc}`")
+            st.error(f"❌ **{len(failed_docs)} documents failed**")
+            with st.expander("Show errors"):
+                for doc in failed_docs:
+                    st.markdown(f"• {doc}")
+        
+        # Show updated summary - compact version
+        if processed_docs or duplicate_docs:
+            docs_summary = knowledge_base_service.get_documents_summary()
+            st.markdown(f"""
+            **📊 Knowledge Base:**
+            - **{docs_summary['total_documents']} docs** ({docs_summary['total_size_mb']} MB)
+            """)
     
     except Exception as e:
-        st.error(f"Document processing failed: {str(e)}")
+        st.error(f"Processing failed: {str(e)}")
+        logging.error(f"Document processing error: {e}")
 
 def extract_text_from_file(uploaded_file):
     """Extract text content from uploaded file"""
@@ -1321,28 +1160,532 @@ def extract_text_from_file(uploaded_file):
         st.error(f"Error extracting text from {uploaded_file.name}: {str(e)}")
         return None
 
+def show_knowledge_graph_modal():
+    """Display knowledge graph visualization modal"""
+    if st.session_state.show_knowledge_graph:
+        # Create a modal-like dialog
+        st.markdown("""
+        <style>
+        .knowledge-graph-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            position: relative;
+        }
+        .close-button {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Modal header with close button
+        col1, col2 = st.columns([6, 1])
+        with col1:
+            st.markdown("# 🕸️ Knowledge Graph Visualization")
+        with col2:
+            if st.button("✕", key="close_kg_modal"):
+                st.session_state.show_knowledge_graph = False
+                st.rerun()
+        
+        st.markdown("---")
+        
+        # Generate and display the knowledge graph
+        with st.spinner("🔄 Loading knowledge graph..."):
+            try:
+                graph_data = get_knowledge_graph_data()
+                
+                if graph_data:
+                    # Display graph statistics
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("🔗 Nodes", len(graph_data.get('nodes', [])))
+                    with col2:
+                        st.metric("↔️ Edges", len(graph_data.get('edges', [])))
+                    with col3:
+                        st.metric("📊 Components", graph_data.get('components', 0))
+                    
+                    # Graph visualization options
+                    st.markdown("### 🎛️ Visualization Options")
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        layout_type = st.selectbox(
+                            "Layout Algorithm",
+                            ["spring", "circular", "kamada_kawai", "random"],
+                            index=0,
+                            key="layout_select"
+                        )
+                    
+                    with col2:
+                        show_labels = st.checkbox("Show Node Labels", value=True, key="labels_check")
+                    
+                    # Generate and display the graph
+                    fig = create_knowledge_graph_visualization(graph_data, layout_type, show_labels)
+                    
+                    if fig:
+                        st.plotly_chart(fig, use_container_width=True, height=600)
+                        
+                        # Graph analysis
+                        st.markdown("### 📊 Graph Analysis")
+                        show_graph_analysis(graph_data)
+                    else:
+                        st.error("Failed to generate graph visualization")
+                else:
+                    st.warning("📭 No knowledge graph data available. Upload some documents first!")
+                    
+            except Exception as e:
+                st.error(f"Error loading knowledge graph: {str(e)}")
+                logging.error(f"Knowledge graph error: {e}")
+
+def get_knowledge_graph_data():
+    """Extract knowledge graph data from LightRAG"""
+    try:
+        from services.knowledge_base import knowledge_base_service
+        import os
+        import json
+        
+        # Always try to create a graph from documents first
+        docs = knowledge_base_service.get_uploaded_documents()
+        
+        # If we have documents, create a document-based graph
+        if docs and len(docs) > 0:
+            return create_document_based_knowledge_graph(docs)
+        
+        # If no documents available, try LightRAG data
+        if not knowledge_base_service.is_initialized:
+            return None
+            
+        # Try to access LightRAG graph data
+        working_dir = knowledge_base_service.working_dir
+        
+        # Look for graph data files that LightRAG might create
+        entities = []
+        relationships = []
+        
+        # Check for entities file
+        entities_file = working_dir / "kv_store" / "entities.json"
+        if entities_file.exists():
+            try:
+                with open(entities_file, 'r', encoding='utf-8') as f:
+                    entities_data = json.load(f)
+                    entities = list(entities_data.keys())[:50]  # Limit to 50 for performance
+            except:
+                pass
+        
+        # Check for relationships file
+        relationships_file = working_dir / "kv_store" / "relationships.json"
+        if relationships_file.exists():
+            try:
+                with open(relationships_file, 'r', encoding='utf-8') as f:
+                    rel_data = json.load(f)
+                    relationships = list(rel_data.keys())[:100]  # Limit to 100 for performance
+            except:
+                pass
+        
+        # If we have LightRAG data, use it
+        if entities and relationships:
+            # Build graph structure
+            nodes = []
+            edges = []
+            
+            # Add entity nodes
+            for i, entity in enumerate(entities):
+                nodes.append({
+                    'id': f"entity_{i}",
+                    'label': entity[:30] + "..." if len(entity) > 30 else entity,
+                    'type': 'entity',
+                    'size': 10
+                })
+            
+            # Add relationship edges
+            for i, rel in enumerate(relationships[:50]):  # Limit edges
+                if len(nodes) >= 2:
+                    source_idx = i % len(nodes)
+                    target_idx = (i + 1) % len(nodes)
+                    edges.append({
+                        'source': nodes[source_idx]['id'],
+                        'target': nodes[target_idx]['id'],
+                        'label': rel[:20] + "..." if len(rel) > 20 else rel,
+                        'type': 'relationship'
+                    })
+            
+            return {
+                'nodes': nodes,
+                'edges': edges,
+                'components': len(set([edge['source'] for edge in edges] + [edge['target'] for edge in edges]))
+            }
+        
+        # Fall back to document-based graph if no LightRAG data
+        return create_document_based_knowledge_graph(docs) if docs else None
+        
+    except Exception as e:
+        logging.error(f"Error extracting knowledge graph: {e}")
+        # Always try to fall back to document-based graph
+        try:
+            from services.knowledge_base import knowledge_base_service
+            docs = knowledge_base_service.get_uploaded_documents()
+            return create_document_based_knowledge_graph(docs) if docs else None
+        except:
+            return None
+
+def create_document_based_knowledge_graph(docs):
+    """Create a knowledge graph based on uploaded documents"""
+    try:
+        if not docs or len(docs) == 0:
+            return None
+        
+        nodes = []
+        edges = []
+        
+        # Create document nodes
+        for i, doc in enumerate(docs[:15]):  # Limit to 15 documents for performance
+            nodes.append({
+                'id': f"doc_{i}",
+                'label': doc['filename'][:25] + "..." if len(doc['filename']) > 25 else doc['filename'],
+                'type': 'document',
+                'size': min(20, max(10, doc['file_size'] // 1000))  # Size based on file size
+            })
+        
+        # Create file type nodes
+        file_types = {}
+        for doc in docs:
+            file_type = doc['file_type'].upper()
+            if file_type not in file_types:
+                file_types[file_type] = len([d for d in docs if d['file_type'] == doc['file_type']])
+        
+        type_nodes = {}
+        for file_type, count in file_types.items():
+            type_node_id = f"type_{file_type.lower()}"
+            nodes.append({
+                'id': type_node_id,
+                'label': f"{file_type} Files ({count})",
+                'type': 'file_type',
+                'size': min(30, 15 + count * 2)
+            })
+            type_nodes[file_type] = type_node_id
+        
+        # Create keyword/topic nodes based on filenames
+        keywords = set()
+        for doc in docs:
+            filename_lower = doc['filename'].lower()
+            # Extract keywords from filename
+            if 'trading' in filename_lower or 'stock' in filename_lower:
+                keywords.add('Trading Systems')
+            if 'risk' in filename_lower or 'management' in filename_lower:
+                keywords.add('Risk Management')
+            if 'delivery' in filename_lower or 'futures' in filename_lower:
+                keywords.add('Futures & Delivery')
+            if 'system' in filename_lower or 'requirements' in filename_lower:
+                keywords.add('System Requirements')
+            if 'financial' in filename_lower or 'finance' in filename_lower:
+                keywords.add('Financial Services')
+        
+        # Add keyword nodes
+        keyword_nodes = {}
+        for keyword in keywords:
+            keyword_id = f"keyword_{keyword.lower().replace(' ', '_')}"
+            nodes.append({
+                'id': keyword_id,
+                'label': keyword,
+                'type': 'topic',
+                'size': 25
+            })
+            keyword_nodes[keyword] = keyword_id
+        
+        # Create edges between documents and file types
+        for i, doc in enumerate(docs[:15]):
+            doc_id = f"doc_{i}"
+            file_type = doc['file_type'].upper()
+            type_node_id = type_nodes.get(file_type)
+            
+            if type_node_id:
+                edges.append({
+                    'source': doc_id,
+                    'target': type_node_id,
+                    'label': 'file_type',
+                    'type': 'classification'
+                })
+        
+        # Create edges between documents and topics
+        for i, doc in enumerate(docs[:15]):
+            doc_id = f"doc_{i}"
+            filename_lower = doc['filename'].lower()
+            
+            for keyword, keyword_id in keyword_nodes.items():
+                if any(word in filename_lower for word in keyword.lower().split()):
+                    edges.append({
+                        'source': doc_id,
+                        'target': keyword_id,
+                        'label': 'relates_to',
+                        'type': 'semantic'
+                    })
+        
+        # Create connections between related documents
+        for i in range(len(docs) - 1):
+            if i >= 14:  # Limit to first 15 docs
+                break
+            for j in range(i + 1, min(len(docs), 15)):
+                doc1 = docs[i]
+                doc2 = docs[j]
+                
+                # Check if documents are related (same type or similar names)
+                if (doc1['file_type'] == doc2['file_type'] or 
+                    any(word in doc1['filename'].lower() and word in doc2['filename'].lower() 
+                        for word in ['system', 'requirements', 'management', 'trading', 'risk'])):
+                    
+                    edges.append({
+                        'source': f"doc_{i}",
+                        'target': f"doc_{j}",
+                        'label': 'related',
+                        'type': 'similarity'
+                    })
+        
+        return {
+            'nodes': nodes,
+            'edges': edges,
+            'components': len(set([edge['source'] for edge in edges] + [edge['target'] for edge in edges]))
+        }
+        
+    except Exception as e:
+        logging.error(f"Error creating document-based graph: {e}")
+        return None
+
+def create_sample_knowledge_graph():
+    """Create a sample knowledge graph when no data is available"""
+    # This function is now replaced by create_document_based_knowledge_graph
+    return None
+
+def create_knowledge_graph_visualization(graph_data, layout="spring", show_labels=True):
+    """Create interactive knowledge graph visualization using plotly"""
+    try:
+        import plotly.graph_objects as go
+        import plotly.express as px
+        import networkx as nx
+        import numpy as np
+        
+        if not graph_data or not graph_data.get('nodes'):
+            return None
+        
+        # Create NetworkX graph
+        G = nx.Graph()
+        
+        # Add nodes
+        node_info = {}
+        for node in graph_data['nodes']:
+            G.add_node(node['id'])
+            node_info[node['id']] = node
+        
+        # Add edges
+        for edge in graph_data['edges']:
+            if edge['source'] in node_info and edge['target'] in node_info:
+                G.add_edge(edge['source'], edge['target'])
+        
+        # Calculate layout
+        if layout == "spring":
+            pos = nx.spring_layout(G, k=1, iterations=50)
+        elif layout == "circular":
+            pos = nx.circular_layout(G)
+        elif layout == "kamada_kawai":
+            pos = nx.kamada_kawai_layout(G)
+        else:
+            pos = nx.random_layout(G)
+        
+        # Extract coordinates
+        x_nodes = [pos[node][0] for node in G.nodes()]
+        y_nodes = [pos[node][1] for node in G.nodes()]
+        
+        # Create edge traces
+        edge_x = []
+        edge_y = []
+        for edge in G.edges():
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+            edge_x.extend([x0, x1, None])
+            edge_y.extend([y0, y1, None])
+        
+        # Edge trace
+        edge_trace = go.Scatter(
+            x=edge_x, y=edge_y,
+            line=dict(width=1, color='#888'),
+            hoverinfo='none',
+            mode='lines'
+        )
+        
+        # Node trace
+        node_trace = go.Scatter(
+            x=x_nodes, y=y_nodes,
+            mode='markers+text' if show_labels else 'markers',
+            hoverinfo='text',
+            text=[node_info[node]['label'] if show_labels else '' for node in G.nodes()],
+            textposition="middle center",
+            marker=dict(
+                size=[node_info[node].get('size', 10) for node in G.nodes()],
+                color=[hash(node_info[node]['type']) % 10 for node in G.nodes()],
+                colorscale='Viridis',
+                line=dict(width=2, color='white')
+            )
+        )
+        
+        # Update hover text
+        hover_text = []
+        for node in G.nodes():
+            info = node_info[node]
+            hover_text.append(f"<b>{info['label']}</b><br>Type: {info['type']}<br>Connections: {G.degree(node)}")
+        
+        node_trace.hovertext = hover_text
+        
+        # Create figure
+        fig = go.Figure(data=[edge_trace, node_trace],
+                       layout=go.Layout(
+                           title=dict(
+                               text="Knowledge Graph Visualization",
+                               x=0.5,
+                               font=dict(size=20)
+                           ),
+                           titlefont_size=16,
+                           showlegend=False,
+                           hovermode='closest',
+                           margin=dict(b=20,l=5,r=5,t=40),
+                           annotations=[ dict(
+                               text="Interactive Knowledge Graph - Hover over nodes for details",
+                               showarrow=False,
+                               xref="paper", yref="paper",
+                               x=0.005, y=-0.002,
+                               xanchor="left", yanchor="bottom",
+                               font=dict(color="#888", size=12)
+                           )],
+                           xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                           yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                           plot_bgcolor='white'
+                       ))
+        
+        return fig
+        
+    except ImportError:
+        st.error("📦 Knowledge graph visualization requires additional packages. Install with:\n\n```bash\npip install plotly networkx\n```")
+        return None
+    except Exception as e:
+        st.error(f"Error creating visualization: {str(e)}")
+        logging.error(f"Visualization error: {e}")
+        return None
+
+def show_graph_analysis(graph_data):
+    """Show detailed analysis of the knowledge graph"""
+    try:
+        import networkx as nx
+        
+        # Create NetworkX graph for analysis
+        G = nx.Graph()
+        
+        for node in graph_data['nodes']:
+            G.add_node(node['id'])
+        
+        for edge in graph_data['edges']:
+            G.add_edge(edge['source'], edge['target'])
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("**📊 Graph Metrics:**")
+            
+            if len(G.nodes()) > 0:
+                density = nx.density(G)
+                st.markdown(f"- **Density:** {density:.3f}")
+                
+                if len(G.nodes()) > 1:
+                    try:
+                        avg_clustering = nx.average_clustering(G)
+                        st.markdown(f"- **Average Clustering:** {avg_clustering:.3f}")
+                    except:
+                        st.markdown("- **Average Clustering:** N/A")
+                
+                # Connected components
+                components = list(nx.connected_components(G))
+                st.markdown(f"- **Connected Components:** {len(components)}")
+                
+                # Degree statistics
+                degrees = dict(G.degree())
+                if degrees:
+                    avg_degree = sum(degrees.values()) / len(degrees)
+                    max_degree = max(degrees.values())
+                    st.markdown(f"- **Average Degree:** {avg_degree:.1f}")
+                    st.markdown(f"- **Max Degree:** {max_degree}")
+        
+        with col2:
+            st.markdown("**🏆 Top Connected Nodes:**")
+            
+            if len(G.nodes()) > 0:
+                degrees = dict(G.degree())
+                sorted_nodes = sorted(degrees.items(), key=lambda x: x[1], reverse=True)
+                
+                for i, (node_id, degree) in enumerate(sorted_nodes[:5]):
+                    node_info = next((n for n in graph_data['nodes'] if n['id'] == node_id), None)
+                    if node_info:
+                        label = node_info['label'][:25] + "..." if len(node_info['label']) > 25 else node_info['label']
+                        st.markdown(f"- **{label}:** {degree} connections")
+                    
+                    if i >= 4:  # Limit to top 5
+                        break
+        
+        # Node type distribution
+        if graph_data['nodes']:
+            st.markdown("**📈 Node Type Distribution:**")
+            
+            type_counts = {}
+            for node in graph_data['nodes']:
+                node_type = node.get('type', 'unknown')
+                type_counts[node_type] = type_counts.get(node_type, 0) + 1
+            
+            for node_type, count in type_counts.items():
+                percentage = (count / len(graph_data['nodes'])) * 100
+                st.markdown(f"- **{node_type.title()}:** {count} nodes ({percentage:.1f}%)")
+                
+    except ImportError:
+        st.info("💡 Install networkx for advanced graph analysis")
+    except Exception as e:
+        st.error(f"Error in graph analysis: {str(e)}")
+
 def main():
     """Main function"""
     initialize_session_state()
     
-    current_session = get_current_session()
-    if not current_session:
-        st.error("Session initialization failed")
-        return
+    # Check if knowledge graph modal should be shown
+    if st.session_state.show_knowledge_graph:
+        show_knowledge_graph_modal()
+        return  # Don't show other content when modal is open
     
     show_header()
     show_phase_indicator()
     
-    # Sidebar with chat history and settings
-    show_chat_history_sidebar()
+    # Sidebar with settings
     selected_model = show_model_selector()
     
     # Main content based on current phase
-    if current_session['current_phase'] == 'input':
+    if st.session_state.current_phase == 'input':
         show_welcome_screen()
-    elif current_session['current_phase'] == 'enhance':
+    elif st.session_state.current_phase == 'enhance':
         show_enhancement_phase(selected_model)
-    elif current_session['current_phase'] == 'review':
+    elif st.session_state.current_phase == 'review':
         show_review_phase(selected_model)
 
 if __name__ == "__main__":

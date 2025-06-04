@@ -17,4 +17,11 @@ faiss-cpu==1.7.4
 pypdf==3.17.4
 docx2txt==0.8
 pandas==2.0.3
-numpy==1.24.3 
+numpy==1.24.3
+plotly
+networkx
+# Optional dependencies for document processing
+pypdf
+docx2txt
+# Optional dependencies for advanced knowledge base features
+lightrag 

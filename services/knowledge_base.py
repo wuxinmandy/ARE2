@@ -4,7 +4,10 @@ import logging
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
+from datetime import datetime
+import hashlib
+import re
 
 try:
     from lightrag import LightRAG, QueryParam
@@ -19,8 +22,25 @@ except ImportError:
 from config import Config
 
 @dataclass
+class UploadedDocument:
+    """Uploaded document data structure"""
+    filename: str
+    content_hash: str
+    upload_time: str
+    file_size: int
+    file_type: str
+    content_preview: str  # Preview of first 100 characters
+    
+    def to_dict(self):
+        return asdict(self)
+    
+    @classmethod
+    def from_dict(cls, data):
+        return cls(**data)
+
+@dataclass
 class RequirementTemplate:
-    """需求模板数据结构"""
+    """Requirement template data structure"""
     category: str
     subcategory: str
     template: str
@@ -29,37 +49,274 @@ class RequirementTemplate:
     best_practices: List[str]
 
 class KnowledgeBaseService:
-    """基于LightRAG的知识库服务"""
+    """LightRAG-based knowledge base service"""
     
     def __init__(self):
         self.working_dir = Path("./rag_storage")
         self.working_dir.mkdir(exist_ok=True)
         
+        # Document storage related paths
+        self.documents_dir = self.working_dir / "documents"
+        self.documents_dir.mkdir(exist_ok=True)
+        self.documents_metadata_file = self.working_dir / "documents_metadata.json"
+        
         self.rag = None
         self.templates_data = {}
         self.is_initialized = False
+        self.uploaded_documents: List[UploadedDocument] = []
+        
+        # Load historical documents
+        self._load_documents_metadata()
         
         if LIGHTRAG_AVAILABLE:
             self._initialize_rag()
             self._load_knowledge_base()
     
-    def _initialize_rag(self):
-        """初始化LightRAG系统"""
+    def _load_documents_metadata(self):
+        """Load metadata of uploaded documents"""
         try:
-            # 简化的LLM模型函数
+            if self.documents_metadata_file.exists():
+                with open(self.documents_metadata_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    self.uploaded_documents = [
+                        UploadedDocument.from_dict(doc_data) 
+                        for doc_data in data.get('documents', [])
+                    ]
+                logging.info(f"Loaded {len(self.uploaded_documents)} documents from history")
+            else:
+                self.uploaded_documents = []
+        except Exception as e:
+            logging.error(f"Failed to load documents metadata: {e}")
+            self.uploaded_documents = []
+    
+    def _save_documents_metadata(self):
+        """Save document metadata to file"""
+        try:
+            metadata = {
+                'documents': [doc.to_dict() for doc in self.uploaded_documents],
+                'last_updated': datetime.now().isoformat()
+            }
+            with open(self.documents_metadata_file, 'w', encoding='utf-8') as f:
+                json.dump(metadata, f, ensure_ascii=False, indent=2)
+            logging.info(f"Saved metadata for {len(self.uploaded_documents)} documents")
+        except Exception as e:
+            logging.error(f"Failed to save documents metadata: {e}")
+    
+    def _calculate_content_hash(self, content: str) -> str:
+        """Calculate content hash for deduplication"""
+        return hashlib.md5(content.encode('utf-8')).hexdigest()
+    
+    async def add_document(self, filename: str, content: str) -> Dict[str, Any]:
+        """Add document to knowledge base"""
+        try:
+            # Calculate content hash
+            content_hash = self._calculate_content_hash(content)
+            
+            # Check if document with same content already exists
+            existing_doc = next(
+                (doc for doc in self.uploaded_documents if doc.content_hash == content_hash),
+                None
+            )
+            
+            if existing_doc:
+                return {
+                    "success": False,
+                    "error": f"Document with similar content already exists: {existing_doc.filename}",
+                    "duplicate": True
+                }
+            
+            # Ensure document directory exists
+            self.documents_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Clean filename to avoid special character issues
+            safe_filename = self._sanitize_filename(filename)
+            doc_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{safe_filename}"
+            doc_path = self.documents_dir / doc_filename
+            
+            # Save document content to file
+            try:
+                with open(doc_path, 'w', encoding='utf-8') as f:
+                    f.write(content)
+                logging.info(f"Document saved to: {doc_path}")
+            except Exception as e:
+                logging.error(f"Failed to save document file: {e}")
+                raise
+            
+            # Create document metadata
+            document = UploadedDocument(
+                filename=filename,  # Keep original filename
+                content_hash=content_hash,
+                upload_time=datetime.now().isoformat(),
+                file_size=len(content.encode('utf-8')),
+                file_type=filename.split('.')[-1].lower() if '.' in filename else 'unknown',
+                content_preview=content[:100] + "..." if len(content) > 100 else content
+            )
+            
+            # Add to LightRAG (if available)
+            if self.is_initialized and self.rag:
+                try:
+                    formatted_content = f"""
+Document Name: {filename}
+Upload Time: {document.upload_time}
+File Type: {document.file_type}
+
+Content:
+{content}
+                    """
+                    await self.rag.ainsert(formatted_content)
+                    logging.info(f"Document added to LightRAG: {filename}")
+                except Exception as e:
+                    logging.warning(f"Failed to add document to LightRAG: {e}")
+            
+            # Save metadata
+            self.uploaded_documents.append(document)
+            self._save_documents_metadata()
+            
+            return {
+                "success": True,
+                "message": f"Document '{filename}' added successfully",
+                "document": document.to_dict()
+            }
+            
+        except Exception as e:
+            logging.error(f"Failed to add document '{filename}': {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    def _sanitize_filename(self, filename: str) -> str:
+        """Clean filename, remove or replace characters that might cause issues"""
+        # Remove or replace unsafe characters
+        unsafe_chars = r'[<>:"/\\|?*]'
+        safe_filename = re.sub(unsafe_chars, '_', filename)
+        
+        # Limit length
+        if len(safe_filename) > 100:
+            name, ext = safe_filename.rsplit('.', 1) if '.' in safe_filename else (safe_filename, '')
+            safe_filename = name[:95] + ('.' + ext if ext else '')
+        
+        return safe_filename
+    
+    def get_uploaded_documents(self) -> List[Dict[str, Any]]:
+        """Get list of uploaded documents"""
+        return [doc.to_dict() for doc in self.uploaded_documents]
+    
+    def get_documents_summary(self) -> Dict[str, Any]:
+        """Get document summary information"""
+        total_docs = len(self.uploaded_documents)
+        total_size = sum(doc.file_size for doc in self.uploaded_documents)
+        
+        file_types = {}
+        for doc in self.uploaded_documents:
+            file_types[doc.file_type] = file_types.get(doc.file_type, 0) + 1
+        
+        return {
+            "total_documents": total_docs,
+            "total_size_bytes": total_size,
+            "total_size_mb": round(total_size / (1024 * 1024), 2),
+            "file_types": file_types,
+            "latest_upload": self.uploaded_documents[-1].upload_time if self.uploaded_documents else None
+        }
+    
+    async def remove_document(self, filename: str) -> Dict[str, Any]:
+        """Remove document from knowledge base"""
+        try:
+            # Find document
+            document = next(
+                (doc for doc in self.uploaded_documents if doc.filename == filename),
+                None
+            )
+            
+            if not document:
+                return {
+                    "success": False,
+                    "error": f"Document '{filename}' not found"
+                }
+            
+            # Remove from list
+            self.uploaded_documents.remove(document)
+            
+            # Delete document file (if exists)
+            for doc_file in self.documents_dir.glob(f"*_{filename}"):
+                try:
+                    doc_file.unlink()
+                except Exception as e:
+                    logging.warning(f"Failed to delete document file {doc_file}: {e}")
+            
+            # Save updated metadata
+            self._save_documents_metadata()
+            
+            # Note: LightRAG doesn't support deleting specific documents, need to rebuild knowledge base
+            # Here we only remove from metadata, actual vector data remains in LightRAG
+            
+            return {
+                "success": True,
+                "message": f"Document '{filename}' removed successfully"
+            }
+            
+        except Exception as e:
+            logging.error(f"Failed to remove document '{filename}': {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    async def rebuild_knowledge_base(self):
+        """Rebuild knowledge base (reload all documents)"""
+        if not self.is_initialized or not self.rag:
+            return
+        
+        try:
+            # Reinitialize RAG system
+            self._initialize_rag()
+            
+            # Reload predefined knowledge base
+            self._load_knowledge_base()
+            
+            # Reload all user documents
+            for document in self.uploaded_documents:
+                # Try to read content from file
+                for doc_file in self.documents_dir.glob(f"*_{document.filename}"):
+                    try:
+                        with open(doc_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                        
+                        formatted_content = f"""
+Document Name: {document.filename}
+Upload Time: {document.upload_time}
+File Type: {document.file_type}
+
+Content:
+{content}
+                        """
+                        await self.rag.ainsert(formatted_content)
+                        break
+                    except Exception as e:
+                        logging.warning(f"Failed to reload document {document.filename}: {e}")
+            
+            logging.info("Knowledge base rebuilt successfully")
+            
+        except Exception as e:
+            logging.error(f"Failed to rebuild knowledge base: {e}")
+    
+    def _initialize_rag(self):
+        """Initialize LightRAG system"""
+        try:
+            # Simplified LLM model function
             async def llm_model_func(prompt, system_prompt=None, history_messages=[], **kwargs) -> str:
-                # 这里使用我们现有的LLM服务
+                # Use our existing LLM service here
                 from services.llm_service import llm_service
                 full_prompt = f"{system_prompt}\n\n{prompt}" if system_prompt else prompt
                 return await llm_service.generate_completion(full_prompt, "demo")
             
-            # 简化的嵌入函数
+            # Simplified embedding function
             async def embedding_func(texts: list[str]):
-                # 返回模拟的嵌入向量
+                # Return simulated embedding vectors
                 import numpy as np
                 return np.random.rand(len(texts), 768).astype(np.float32)
             
-            # 初始化LightRAG
+            # Initialize LightRAG
             self.rag = LightRAG(
                 working_dir=str(self.working_dir),
                 llm_model_func=llm_model_func,
@@ -78,15 +335,15 @@ class KnowledgeBaseService:
             self.is_initialized = False
     
     def _load_knowledge_base(self):
-        """加载需求分析知识库"""
+        """Load requirements analysis knowledge base"""
         if not self.is_initialized:
             return
             
-        # 预定义的需求分析知识库数据
+        # Predefined requirements analysis knowledge base data
         knowledge_data = self._get_requirements_knowledge()
         
         try:
-            # 将知识库数据插入到LightRAG中
+            # Insert knowledge base data into LightRAG
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
@@ -101,141 +358,141 @@ class KnowledgeBaseService:
             loop.close()
     
     def _get_requirements_knowledge(self) -> Dict[str, str]:
-        """获取需求分析知识库数据"""
+        """Get requirements analysis knowledge base data"""
         return {
             "web_applications": """
-            Web应用需求分析指南：
+            Web Application Requirements Analysis Guide:
             
-            功能需求：
-            - 用户注册和登录系统
-            - 用户角色和权限管理
-            - 数据CRUD操作
-            - 搜索和过滤功能
-            - 文件上传和下载
-            - 通知系统
-            - 报表和数据可视化
+            Functional Requirements:
+            - User registration and login system
+            - User roles and permission management
+            - Data CRUD operations
+            - Search and filtering functionality
+            - File upload and download
+            - Notification system
+            - Reporting and data visualization
             
-            非功能需求：
-            - 响应时间：页面加载时间<3秒
-            - 并发用户：支持1000+同时在线用户
-            - 安全性：HTTPS、SQL注入防护、XSS防护
-            - 兼容性：支持主流浏览器
-            - 可用性：99.9%正常运行时间
+            Non-functional Requirements:
+            - Response time: Page load time <3 seconds
+            - Concurrent users: Support 1000+ simultaneous online users
+            - Security: HTTPS, SQL injection protection, XSS protection
+            - Compatibility: Support mainstream browsers
+            - Availability: 99.9% uptime
             
-            技术架构：
-            - 前端：React/Vue/Angular
-            - 后端：Node.js/Python/Java
-            - 数据库：MySQL/PostgreSQL/MongoDB
-            - 部署：Docker、云服务
+            Technical Architecture:
+            - Frontend: React/Vue/Angular
+            - Backend: Node.js/Python/Java
+            - Database: MySQL/PostgreSQL/MongoDB
+            - Deployment: Docker, cloud services
             
-            需要明确的问题：
-            1. 预期用户数量和并发量？
-            2. 需要支持哪些设备和浏览器？
-            3. 数据安全和隐私要求？
-            4. 是否需要第三方集成？
-            5. 维护和更新频率？
+            Questions to clarify:
+            1. Expected number of users and concurrent load?
+            2. Which devices and browsers need support?
+            3. Data security and privacy requirements?
+            4. Need for third-party integrations?
+            5. Maintenance and update frequency?
             """,
             
             "mobile_applications": """
-            移动应用需求分析指南：
+            Mobile Application Requirements Analysis Guide:
             
-            功能需求：
-            - 用户界面设计和用户体验
-            - 离线功能支持
-            - 推送通知
-            - 相机和媒体功能
-            - GPS定位服务
-            - 社交分享功能
-            - 支付集成
+            Functional Requirements:
+            - User interface design and user experience
+            - Offline functionality support
+            - Push notifications
+            - Camera and media functionality
+            - GPS location services
+            - Social sharing functionality
+            - Payment integration
             
-            非功能需求：
-            - 启动时间：<3秒
-            - 电池优化
-            - 内存使用优化
-            - 网络适应性（2G/3G/4G/5G/WiFi）
-            - 应用大小控制
+            Non-functional Requirements:
+            - Startup time: <3 seconds
+            - Battery optimization
+            - Memory usage optimization
+            - Network adaptability (2G/3G/4G/5G/WiFi)
+            - Application size control
             
-            平台考虑：
-            - iOS vs Android vs 跨平台
-            - 最低支持版本
-            - 设备适配（手机、平板）
-            - 应用商店发布要求
+            Platform Considerations:
+            - iOS vs Android vs Cross-platform
+            - Minimum supported version
+            - Device adaptation (phones, tablets)
+            - App store release requirements
             
-            需要明确的问题：
-            1. 目标平台（iOS/Android/跨平台）？
-            2. 是否需要离线功能？
-            3. 需要哪些设备权限？
-            4. 推送通知策略？
-            5. 应用商店发布计划？
+            Questions to clarify:
+            1. Target platform (iOS/Android/Cross-platform)?
+            2. Need for offline functionality?
+            3. Which device permissions required?
+            4. Push notification strategy?
+            5. App store release plan?
             """,
             
             "e_commerce": """
-            电商系统需求分析指南：
+            E-commerce System Requirements Analysis Guide:
             
-            核心功能：
-            - 商品管理（分类、库存、价格）
-            - 购物车和订单流程
-            - 支付系统集成
-            - 用户账户管理
-            - 评价和评论系统
-            - 促销和优惠券
-            - 物流跟踪
+            Core Functionality:
+            - Product management (categories, inventory, pricing)
+            - Shopping cart and order process
+            - Payment system integration
+            - User account management
+            - Review and rating system
+            - Promotions and coupons
+            - Logistics tracking
             
-            管理功能：
-            - 商家管理后台
-            - 订单管理
-            - 财务报表
-            - 客户服务工具
-            - 数据分析仪表板
+            Management Features:
+            - Merchant management backend
+            - Order management
+            - Financial reports
+            - Customer service tools
+            - Data analysis dashboard
             
-            安全要求：
-            - PCI DSS合规
-            - 用户数据保护
-            - 防欺诈机制
-            - 安全支付处理
+            Security Requirements:
+            - PCI DSS compliance
+            - User data protection
+            - Anti-fraud mechanisms
+            - Secure payment processing
             
-            需要明确的问题：
-            1. B2C、B2B还是B2B2C模式？
-            2. 支持的支付方式？
-            3. 配送范围和物流合作？
-            4. 多语言和多货币支持？
-            5. 移动端需求？
+            Questions to clarify:
+            1. B2C, B2B or B2B2C model?
+            2. Supported payment methods?
+            3. Delivery scope and logistics partnerships?
+            4. Multi-language and multi-currency support?
+            5. Mobile requirements?
             """,
             
             "data_management": """
-            数据管理系统需求分析指南：
+            Data Management System Requirements Analysis Guide:
             
-            数据功能：
-            - 数据收集和导入
-            - 数据清洗和验证
-            - 数据存储和备份
-            - 数据查询和检索
-            - 数据可视化
-            - 数据导出和报告
+            Data Functions:
+            - Data collection and import
+            - Data cleaning and validation
+            - Data storage and backup
+            - Data querying and retrieval
+            - Data visualization
+            - Data export and reporting
             
-            数据质量：
-            - 数据准确性验证
-            - 重复数据处理
-            - 数据完整性检查
-            - 数据更新机制
+            Data Quality:
+            - Data accuracy validation
+            - Duplicate data handling
+            - Data integrity checks
+            - Data update mechanisms
             
-            安全和合规：
-            - 数据加密
-            - 访问控制
-            - 审计日志
-            - GDPR/隐私法规合规
+            Security and Compliance:
+            - Data encryption
+            - Access control
+            - Audit logs
+            - GDPR/privacy law compliance
             
-            需要明确的问题：
-            1. 数据来源和格式？
-            2. 数据量级和增长预期？
-            3. 实时性要求？
-            4. 数据保留政策？
-            5. 集成其他系统的需求？
+            Questions to clarify:
+            1. Data sources and formats?
+            2. Data volume scale and growth expectations?
+            3. Real-time requirements?
+            4. Data retention policies?
+            5. Integration with other systems requirements?
             """
         }
     
     async def query_knowledge_base(self, requirement_text: str, query_mode: str = "hybrid") -> Dict[str, Any]:
-        """查询知识库获取相关建议"""
+        """Query knowledge base for relevant suggestions"""
         if not self.is_initialized or not self.rag:
             return {
                 "success": False,
@@ -245,16 +502,16 @@ class KnowledgeBaseService:
             }
         
         try:
-            # 构建查询
-            query = f"分析以下需求并提供改进建议：{requirement_text}"
+            # Build query
+            query = f"Analyze the following requirements and provide improvement suggestions: {requirement_text}"
             
-            # 查询知识库
+            # Query knowledge base
             response = await self.rag.aquery(
                 query, 
                 param=QueryParam(mode=query_mode)
             )
             
-            # 解析响应并生成建议
+            # Parse response and generate suggestions
             suggestions = self._parse_suggestions(response)
             questions = self._generate_clarification_questions(requirement_text, response)
             
@@ -275,140 +532,140 @@ class KnowledgeBaseService:
             }
     
     def _parse_suggestions(self, response: str) -> List[str]:
-        """解析知识库响应生成建议"""
+        """Parse knowledge base response to generate suggestions"""
         suggestions = []
         
-        # 简单的响应解析逻辑
+        # Simple response parsing logic
         lines = response.split('\n')
         for line in lines:
             line = line.strip()
-            if line and ('建议' in line or '推荐' in line or '应该' in line):
+            if line and ('suggest' in line.lower() or 'recommend' in line.lower() or 'should' in line.lower()):
                 suggestions.append(line)
         
-        # 如果没有找到建议，返回通用建议
+        # If no suggestions found, return generic suggestions
         if not suggestions:
             suggestions = [
-                "建议明确目标用户群体和使用场景",
-                "需要详细说明核心功能和用户流程",
-                "考虑非功能需求如性能、安全性、可扩展性",
-                "明确技术栈和部署环境要求"
+                "Suggest clarifying target user groups and use cases",
+                "Need detailed description of core functions and user flows",
+                "Consider non-functional requirements like performance, security, scalability",
+                "Clarify technology stack and deployment environment requirements"
             ]
         
-        return suggestions[:5]  # 限制返回5个建议
+        return suggestions[:5]  # Limit to 5 suggestions
     
     def _generate_clarification_questions(self, requirement_text: str, context: str) -> List[str]:
-        """基于需求和上下文生成澄清问题"""
+        """Generate clarification questions based on requirements and context"""
         questions = []
         
-        # 基于需求类型生成问题
+        # Generate questions based on requirement type
         requirement_lower = requirement_text.lower()
         
-        if 'web' in requirement_lower or '网站' in requirement_lower:
+        if 'web' in requirement_lower or 'website' in requirement_lower:
             questions.extend([
-                "这个Web应用的主要用户群体是谁？",
-                "预期的并发用户数量是多少？",
-                "需要支持哪些浏览器和设备？",
-                "是否需要移动端适配？"
+                "Who is the main user group for this web application?",
+                "What is the expected number of concurrent users?",
+                "Which browsers and devices need support?",
+                "Do you need mobile adaptation?"
             ])
         
-        if 'mobile' in requirement_lower or '移动' in requirement_lower or 'app' in requirement_lower:
+        if 'mobile' in requirement_lower or 'app' in requirement_lower:
             questions.extend([
-                "需要开发iOS版本、Android版本还是跨平台应用？",
-                "应用是否需要离线功能？",
-                "需要集成哪些设备功能（相机、GPS、推送等）？"
+                "Do you need iOS, Android, or cross-platform development?",
+                "Does the app need offline functionality?",
+                "Which device features need integration (camera, GPS, push, etc.)?",
             ])
         
-        if 'ecommerce' in requirement_lower or '电商' in requirement_lower or '购物' in requirement_lower:
+        if 'ecommerce' in requirement_lower or 'e-commerce' in requirement_lower or 'shopping' in requirement_lower:
             questions.extend([
-                "支持哪些支付方式？",
-                "配送范围是什么？",
-                "是否需要多商家入驻功能？",
-                "需要支持哪些促销活动类型？"
+                "Which payment methods to support?",
+                "What is the delivery scope?",
+                "Do you need multi-vendor functionality?",
+                "Which types of promotional activities to support?"
             ])
         
-        if 'management' in requirement_lower or '管理' in requirement_lower:
+        if 'management' in requirement_lower or 'manage' in requirement_lower:
             questions.extend([
-                "系统将有多少用户同时使用？",
-                "需要哪些用户角色和权限？",
-                "是否需要移动端管理功能？",
-                "数据导入导出需求是什么？"
+                "How many users will use the system simultaneously?",
+                "Which user roles and permissions are needed?",
+                "Do you need mobile management functionality?",
+                "What are the data import/export requirements?"
             ])
         
-        # 通用问题
+        # Generic questions
         if not questions:
             questions = [
-                "这个系统的主要目标是什么？",
-                "谁是主要用户？",
-                "有什么特殊的安全或合规要求？",
-                "预期的用户数量和数据量级？",
-                "有哪些现有系统需要集成？"
+                "What is the main goal of this system?",
+                "Who are the primary users?",
+                "Are there any special security or compliance requirements?",
+                "What are the expected user numbers and data scale?",
+                "Which existing systems need integration?"
             ]
         
-        return questions[:6]  # 限制返回6个问题
+        return questions[:6]  # Limit to 6 questions
     
     def get_requirement_template(self, category: str) -> Optional[RequirementTemplate]:
-        """获取需求模板"""
+        """Get requirement template"""
         templates = {
             "web_app": RequirementTemplate(
-                category="Web应用",
-                subcategory="标准Web应用",
+                category="Web Application",
+                subcategory="Standard Web Application",
                 template="""
-# {项目名称} 需求文档
+# {Project Name} Requirements Document
 
-## 1. 项目概述
-- **项目目标**: 
-- **目标用户**: 
-- **核心价值**: 
+## 1. Project Overview
+- **Project Goal**: 
+- **Target Users**: 
+- **Core Value**: 
 
-## 2. 功能需求
-### 2.1 用户管理
-- 用户注册和登录
-- 用户角色管理
-- 个人资料管理
+## 2. Functional Requirements
+### 2.1 User Management
+- User registration and login
+- User role management
+- Profile management
 
-### 2.2 核心功能
-- [具体功能列表]
+### 2.2 Core Features
+- [Specific feature list]
 
-### 2.3 管理功能
-- 后台管理界面
-- 数据管理
-- 系统配置
+### 2.3 Management Features
+- Backend management interface
+- Data management
+- System configuration
 
-## 3. 非功能需求
-- **性能**: 页面加载时间 < 3秒
-- **安全**: HTTPS、数据加密
-- **兼容性**: 支持主流浏览器
-- **可用性**: 99.9%正常运行时间
+## 3. Non-Functional Requirements
+- **Performance**: Page load time < 3 seconds
+- **Security**: HTTPS, data encryption
+- **Compatibility**: Support mainstream browsers
+- **Availability**: 99.9% uptime
 
-## 4. 技术要求
-- **前端技术**: 
-- **后端技术**: 
-- **数据库**: 
-- **部署环境**: 
+## 4. Technical Requirements
+- **Frontend Technology**: 
+- **Backend Technology**: 
+- **Database**: 
+- **Deployment Environment**: 
                 """,
                 questions=[
-                    "网站的主要功能是什么？",
-                    "预期有多少用户使用？",
-                    "需要支持哪些浏览器？",
-                    "是否需要移动端适配？",
-                    "有什么特殊的安全要求？"
+                    "What are the main functions of the website?",
+                    "How many users are expected?",
+                    "Which browsers need support?",
+                    "Do you need mobile adaptation?",
+                    "Are there any special security requirements?"
                 ],
                 examples=[
-                    "企业官网",
-                    "在线商城",
-                    "内容管理系统",
-                    "社交平台"
+                    "Corporate website",
+                    "Online store",
+                    "Content management system",
+                    "Social platform"
                 ],
                 best_practices=[
-                    "响应式设计",
-                    "SEO优化",
-                    "安全性设计",
-                    "用户体验优化"
+                    "Responsive design",
+                    "SEO optimization",
+                    "Security design",
+                    "User experience optimization"
                 ]
             )
         }
         
         return templates.get(category)
 
-# 创建全局知识库服务实例
+# Create global knowledge base service instance
 knowledge_base_service = KnowledgeBaseService() 

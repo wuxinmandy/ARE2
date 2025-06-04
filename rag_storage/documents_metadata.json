@@ -1,0 +1,37 @@
+{
+  "documents": [
+    {
+      "filename": "futures_delivery_system_requirements.txt",
+      "content_hash": "04d4559077206691e12fe36815cf82b9",
+      "upload_time": "2025-06-04T17:01:03.436625",
+      "file_size": 12267,
+      "file_type": "txt",
+      "content_preview": "Futures Delivery System Requirements Specification\r\n\r\nProject Overview\r\n=================\r\n\r\nSystem ..."
+    },
+    {
+      "filename": "stock_trading_system_requirements.txt",
+      "content_hash": "62b82291dd44d43d2236c87804512769",
+      "upload_time": "2025-06-04T17:01:03.439679",
+      "file_size": 9966,
+      "file_type": "txt",
+      "content_preview": "Stock Trading System Requirements Specification\r\n\r\nProject Overview\r\n=================\r\n\r\nSystem Nam..."
+    },
+    {
+      "filename": "risk_management_system_requirements.txt",
+      "content_hash": "47d9400aaa0ad154711f63f495bc10f1",
+      "upload_time": "2025-06-04T17:01:03.440724",
+      "file_size": 12932,
+      "file_type": "txt",
+      "content_preview": "Financial Risk Management System Requirements Specification\r\n\r\nProject Overview\r\n=================\r\n..."
+    },
+    {
+      "filename": "demo_requirements.txt",
+      "content_hash": "7ce24a14c05155da77f79d9e910e5ea6",
+      "upload_time": "2025-06-04T17:12:14.185321",
+      "file_size": 3153,
+      "file_type": "txt",
+      "content_preview": "电商系统需求规范文档\r\n\r\n项目概述\r\n=======\r\n\r\n项目名称：在线手工艺品商城\r\n项目目标：为手工艺品创作者和消费者提供一个专业的在线交易平台\r\n\r\n功能需求\r\n=======\r\n\r\n用户管..."
+    }
+  ],
+  "last_updated": "2025-06-04T17:19:28.383920"
+}

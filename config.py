@@ -18,8 +18,8 @@ class Config:
     ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-3-sonnet-20240229")
     
     # Application Configuration
-    APP_TITLE = "AI Requirements Management System"
-    APP_DESCRIPTION = "Intelligent requirements management powered by Generative AI"
+    APP_TITLE = "BA Copilot"
+    APP_DESCRIPTION = "Intelligent Business Analysis Assistant powered by Generative AI"
     
     @classmethod
     def get_available_models(cls):

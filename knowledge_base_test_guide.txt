@@ -1,0 +1,108 @@
+Knowledge Base Testing Documentation Guide
+
+Document Overview
+=================
+
+This directory contains 3 professional financial system requirements documents for testing the AI requirements management system's knowledge base functionality:
+
+1. **Stock Trading System Requirements Specification** (stock_trading_system_requirements.txt)
+   - Document Size: ~45KB, contains complete stock trading system requirements
+   - Coverage: User management, trading management, market data, fund management, risk control modules
+   - Technical Features: Microservices architecture, high concurrency processing, real-time requirements
+   - Use Case: Securities companies, investment institutions trading platform construction
+
+2. **Futures Delivery System Requirements Specification** (futures_delivery_system_requirements.txt)
+   - Document Size: ~35KB, detailed description of futures delivery management system
+   - Coverage: Delivery management, warehouse receipt management, quality inspection management, fund management, risk control
+   - Business Features: Physical delivery, cash delivery, standard warehouse receipts, premium/discount management
+   - Use Case: Futures exchanges, futures companies, delivery warehouses delivery business
+
+3. **Financial Risk Management System Requirements Specification** (risk_management_system_requirements.txt)
+   - Document Size: ~40KB, comprehensive risk management system specification
+   - Coverage: Risk identification, monitoring, warning, control, compliance regulation
+   - Technical Features: Big data processing, machine learning, real-time computing, distributed architecture
+   - Use Case: Banks, securities, futures, insurance financial institutions risk management
+
+Testing Recommendations
+=======================
+
+1. **Individual Document Testing**
+   - Upload each document separately, observe knowledge base processing capability
+   - Test document parsing, content extraction, hash calculation functions
+   - Verify document metadata accuracy (file size, type, preview, etc.)
+
+2. **Combined Multi-Document Testing**
+   - Upload multiple documents simultaneously, test batch processing capability
+   - Verify duplicate detection functionality (try re-uploading same document)
+   - Test knowledge base comprehensive analysis capability
+
+3. **Functional Testing Scenarios**
+   - Requirements Enhancement: Input simple requirements, observe how AI provides suggestions based on these professional documents
+   - Smart Question Generation: See if system can generate professional questions based on financial domain knowledge
+   - Risk Identification: Test system's ability to identify financial system risks
+   - Compliance Suggestions: Verify if system can provide regulatory compliance-related suggestions
+
+4. **Performance Testing**
+   - Document Upload Speed: Test processing speed of large files (40KB+)
+   - Knowledge Base Query: Test query response time based on these professional documents
+   - Memory Usage: Observe resource consumption when knowledge base processes professional documents
+
+Test Case Examples
+==================
+
+Basic Requirement Input Examples:
+- "I need to develop a stock trading platform"
+- "Build a futures delivery management system"
+- "Design a financial risk monitoring system"
+
+Expected AI Enhancement Effects:
+- Provide detailed functional module suggestions based on professional documents
+- Identify financial industry-specific compliance requirements
+- Provide technical architecture and security suggestions
+- Generate targeted clarification questions
+
+Verification Points
+===================
+
+1. **Document Processing Verification**
+   ✅ Documents successfully uploaded and saved to rag_storage/documents/
+   ✅ Metadata correctly recorded in documents_metadata.json
+   ✅ Content hash calculation correct, duplicate detection effective
+   ✅ Document preview displays first 100 characters
+
+2. **Knowledge Base Integration Verification**
+   ✅ LightRAG successfully loads document content
+   ✅ Knowledge base status correctly displayed in sidebar
+   ✅ Document statistics accurate (quantity, size, type)
+   ✅ Historical documents correctly restored after restart
+
+3. **AI Enhancement Effect Verification**
+   ✅ Requirements analysis provides suggestions based on professional documents
+   ✅ Generated questions reflect financial domain professionalism
+   ✅ Risk identification includes industry-specific risks
+   ✅ Compliance suggestions conform to financial regulatory requirements
+
+Usage Recommendations
+======================
+
+1. **Progressive Testing**
+   - First test single document upload
+   - Then test batch upload
+   - Finally test comprehensive analysis functionality
+
+2. **Focus on Professionalism**
+   - These documents contain extensive financial professional terminology
+   - Test whether AI can understand and apply this professional knowledge
+   - Verify professional accuracy of generated content
+
+3. **Performance Observation**
+   - Note processing time for large documents
+   - Observe memory and CPU usage
+   - Record any errors or exceptions
+
+4. **Functional Completeness**
+   - Test all CRUD operations (Create, Read, Update, Delete)
+   - Verify error handling mechanisms
+   - Confirm user interface friendliness
+
+These test documents will help comprehensively verify knowledge base functionality, especially performance when processing complex, professional domain documents. 

@@ -71,7 +71,7 @@ def start_application():
         subprocess.run([
             sys.executable, "-m", "streamlit", "run", "main.py",
             "--server.port=8501",
-            "--server.address=0.0.0.0",
+            "--server.address=localhost",
             "--browser.gatherUsageStats=false"
         ], check=True)
     except KeyboardInterrupt:
